@@ -22,8 +22,6 @@ const LoginScreen = ({navigation}) => {
   return (
     <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
       <View style={{paddingHorizontal: 25}}>
-       
-
         <Text
           style={{
             fontFamily: 'Roboto-Medium',
@@ -40,11 +38,11 @@ const LoginScreen = ({navigation}) => {
           label={'電子郵件'}
           icon={
             <MaterialIcons
-            name="alternate-email"
-            size={20}
-            color="#666"
-            style={{marginRight: 5}}
-          />
+              name="alternate-email"
+              size={20}
+              color="#666"
+              style={{marginRight: 5}}
+            />
           }
           keyboardType="email-address"
         />
@@ -53,20 +51,18 @@ const LoginScreen = ({navigation}) => {
           label={'密碼'}
           icon={
             <Ionicons
-            name="ios-lock-closed-outline"
-            size={20}
-            color="#666"
-            style={{marginRight: 5}}
-          />
+              name="ios-lock-closed-outline"
+              size={20}
+              color="#666"
+              style={{marginRight: 5}}
+            />
           }
           inputType="password"
-          fieldButtonLabel={"Forgot?"}
+          fieldButtonLabel={'Forgot?'}
           fieldButtonFunction={() => {}}
         />
-        
-        <CustomButton label={"登入"} onPress={() => {}} />
 
-        
+        <CustomButton label={'登入'} onPress={() => {}} />
       </View>
     </SafeAreaView>
   );

@@ -15,10 +15,10 @@ import InputField from '../components/InputField';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import RegistrationSVG from '../assets/images/misc/registration.svg';
-import GoogleSVG from '../assets/images/misc/google.svg';
-import FacebookSVG from '../assets/images/misc/facebook.svg';
-import CustomButton from '../components/CustomButton';
+// import RegistrationSVG from '../assets/images/misc/registration.svg';
+// import GoogleSVG from '../assets/images/misc/google.svg';
+// import FacebookSVG from '../assets/images/misc/facebook.svg';
+// import CustomButton from '../components/CustomButton';
 
 const RegisterScreen = ({navigation}) => {
   const [date, setDate] = useState(new Date());
@@ -30,7 +30,6 @@ const RegisterScreen = ({navigation}) => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{paddingHorizontal: 25}}>
-
         <Text
           style={{
             fontFamily: 'Roboto-Medium',
@@ -76,8 +75,6 @@ const RegisterScreen = ({navigation}) => {
         <Text style={{textAlign: 'center', color: '#666', marginBottom: 30}}>
           Or, register with email ...
         </Text>
-        
-
 
         <InputField
           label={'電子郵件'}
@@ -91,7 +88,7 @@ const RegisterScreen = ({navigation}) => {
           }
           keyboardType="email-address"
         />
-        
+
         <InputField
           label={'姓名'}
           icon={
@@ -103,8 +100,6 @@ const RegisterScreen = ({navigation}) => {
             />
           }
         />
-
-        
 
         <InputField
           label={'密碼'}
@@ -131,7 +126,6 @@ const RegisterScreen = ({navigation}) => {
           }
           inputType="password"
         />
-
 
         <CustomButton label={'註冊'} onPress={() => {}} />
 

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
-import{BirthdayPicker} from '../  components/BirthdayPicker';
+import React, {useState} from 'react';
+import {View, TextInput, Button, StyleSheet} from 'react-native';
+import {BirthdayPicker} from '../ components/BirthdayPicker';
 
 const ProfileScreen = () => {
   // Set initial state for form fields
@@ -56,6 +56,6 @@ const ProfileScreen = () => {
   );
 };
 
-const styles = StyleSheet.create
+const styles = StyleSheet.create;
 
-export default ProfileScreen
+export default ProfileScreen;
