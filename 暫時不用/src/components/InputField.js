@@ -13,36 +13,25 @@ export default function InputField({
     <View
       style={{
         flexDirection: 'row',
-        backgroundColor:'white',
-        borderWidth: 2,
-        borderColor:'#B65A3D',
-        padding: 5,
+        background: 'white', 
+        border: '2px #B65A3D solid',
+        paddingBottom: 8,
         marginBottom: 25,
-
       }}>
       
-      
+      {icon}
       {inputType == 'password' ? (
         <TextInput
           placeholder={label}
           keyboardType={keyboardType}
-          style={{  
-            flex: 1, 
-            height: 30,
-            textAlignVertical:'center' 
-            }}
+          style={{flex: 1, paddingVertical: 0}}
           secureTextEntry={true}
-         
         />
       ) : (
         <TextInput
           placeholder={label}
           keyboardType={keyboardType}
-          style={{
-            flex: 1, 
-            height: 30, 
-            textAlignVertical:'center' 
-            }}
+          style={{flex: 1, paddingVertical: 0}}
         />
       )}
       <TouchableOpacity onPress={fieldButtonFunction}>
@@ -50,9 +39,7 @@ export default function InputField({
             color: 'rgba(0;0;0;0.50)', 
             fontSize: 15,
             fontFamily: 'Roboto',
-            fontWeight: '400',
-            textAlignVertical:'center' 
-            }}>{fieldButtonLabel}</Text>
+            fontWeight: '400'}}>{fieldButtonLabel}</Text>
       </TouchableOpacity>
     </View>
   );

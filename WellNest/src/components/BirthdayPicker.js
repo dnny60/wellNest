@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Button, Platform, StyleSheet } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { DateTimePicker} from 'react-native-date-picker';
 
 const BirthdayPicker = () => {
   const [date, setDate] = useState(new Date());
