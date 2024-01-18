@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
 
 import CustomButton from '../components/CustomButton';
@@ -27,6 +28,9 @@ const RegisterScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordMatch, setIsPasswordMatch] = useState(true);
+  const [isEmailEmpty, setIsEmailEmpty] = useState(false);
+  const [isNicknameEmpty, setIsNicknameEmpty] = useState(false);
+  const [isPasswordEmpty, setIsPasswordEmpty] = useState(false);
 
   useEffect(() => {
     setIsPasswordMatch(password === confirmPassword);
@@ -42,35 +46,39 @@ const RegisterScreen = ({navigation}) => {
   // 註冊的函數
   //這裡把註冊的資料傳到後端
   const registration = () => {
-    fetch('http://192.168.1.105:8080/users/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password,
-        name: nickname,
-      }),
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Success:', data);
-        console.log(data.status);
-        if (data.status === 'success') {
-          navigation.navigate('Login');
-          //註冊成功的話，會跳轉到登入頁面
-          //如果要加入註冊成功的提示，可以在這裡加入
-        } else {
-          alert(data.message);
-          //如果註冊失敗，會跳出註冊失敗的提示
-          //也可以加入其它東西
-        }
+    if (email && nickname && password && confirmPassword) {
+      fetch('http://192.168.1.105:8080/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          name: nickname,
+        }),
       })
-      .catch(error => {
-        console.error('Error:', error);
-      });
-    console.log('Registration');
+        .then(response => response.json())
+        .then(data => {
+          console.log('Success:', data);
+          console.log(data.status);
+          if (data.status === 'success') {
+            navigation.navigate('Login');
+            //註冊成功的話，會跳轉到登入頁面
+            //如果要加入註冊成功的提示，可以在這裡加入
+          } else if (data.error === '該電子郵件已被註冊') {
+            alert('該電子郵件已被註冊');
+          } else {
+            alert(data.message);
+            //如果註冊失敗，會跳出註冊失敗的提示
+            //也可以加入其它東西
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+      console.log('Registration');
+    }
   };
 
   return (
@@ -90,7 +98,7 @@ const RegisterScreen = ({navigation}) => {
             fontSize: 36,
             fontWeight: '400',
             color: '#80351E',
-            wordWrap: 'break-word',
+
             marginTop: 100,
             marginBottom: 30,
           }}>
@@ -106,16 +114,21 @@ const RegisterScreen = ({navigation}) => {
           keyboardType="email-address"
           onChangeText={text => {
             setEmail(text);
+            setIsEmailEmpty(!text);
             console.log(text);
           }}
         />
+        {isEmailEmpty && <Text style={styles.errorText}>電子郵件不能為空</Text>}
         <InputField
           label={'暱稱'}
           onChangeText={text => {
             setNickname(text);
+            setIsNicknameEmpty(!text);
+            setIsPasswordEmpty(!text);
             console.log(text);
           }}
         />
+        {isNicknameEmpty && <Text style={styles.errorText}>暱稱不能為空</Text>}
         <InputField
           label={'密碼'}
           inputType="password"
@@ -134,6 +147,7 @@ const RegisterScreen = ({navigation}) => {
             checkPasswordMatch();
           }}
         />
+        {isPasswordEmpty && <Text style={styles.errorText}>密碼不能為空</Text>}
         {!isPasswordMatch && (
           <Text style={{color: 'red', alignSelf: 'flex-start'}}>
             密碼不相同
@@ -161,5 +175,14 @@ const RegisterScreen = ({navigation}) => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  // ... 其他样式 ...
+  errorText: {
+    color: 'red',
+    alignSelf: 'flex-start',
+    fontSize: 12,
+  },
+});
 
 export default RegisterScreen;

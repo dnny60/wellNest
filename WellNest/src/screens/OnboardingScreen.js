@@ -32,7 +32,6 @@ const OnboardingScreen = ({navigation}) => {
               fontSize: 48,
               fontFamily: 'Rhodium Libre',
               fontWeight: '400',
-              wordWrap: 'break-word',
             }}>
             Welcome to WellNest
           </Text>
