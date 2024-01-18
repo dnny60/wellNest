@@ -47,7 +47,7 @@ const RegisterScreen = ({navigation}) => {
   //這裡把註冊的資料傳到後端
   const registration = () => {
     if (email && nickname && password && confirmPassword) {
-      fetch('http://192.168.1.105:8080/users/register', {
+      fetch('http://52.68.188.15/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

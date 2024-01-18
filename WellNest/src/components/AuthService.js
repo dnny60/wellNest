@@ -2,7 +2,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.105:8080/users'; // 基础URL
+const API_URL = 'http://52.68.188.15/users'; // 基础URL
 
 const login = async (email, password) => {
   try {
