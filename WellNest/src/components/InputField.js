@@ -8,6 +8,7 @@ export default function InputField({
   keyboardType,
   fieldButtonLabel,
   fieldButtonFunction,
+  onChangeText,
 }) {
   return (
     <View
@@ -19,6 +20,13 @@ export default function InputField({
         padding: 5,
         marginBottom: 25,
       }}>
+      <Text
+        style={{
+          marginRight: 10,
+          alignSelf: 'center',
+        }}>
+        {label}
+      </Text>
       {inputType == 'password' ? (
         <TextInput
           placeholder={label}
@@ -29,6 +37,7 @@ export default function InputField({
             textAlignVertical: 'center',
           }}
           secureTextEntry={true}
+          onChangeText={onChangeText}
         />
       ) : (
         <TextInput
@@ -39,6 +48,7 @@ export default function InputField({
             height: 30,
             textAlignVertical: 'center',
           }}
+          onChangeText={onChangeText}
         />
       )}
       <TouchableOpacity onPress={fieldButtonFunction}>

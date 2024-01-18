@@ -67,7 +67,6 @@ const OnboardingScreen = ({navigation}) => {
               fontWeight: '900',
               textTransform: 'uppercase',
               letterSpacing: 0.52,
-              wordWrap: 'break-word',
             }}>
             登入
           </Text>
@@ -94,7 +93,6 @@ const OnboardingScreen = ({navigation}) => {
               fontWeight: '900',
               textTransform: 'uppercase',
               letterSpacing: 0.52,
-              wordWrap: 'break-word',
             }}>
             註冊
           </Text>
@@ -117,7 +115,6 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontFamily: 'Rhodium Libre',
     fontWeight: '400',
-    wordWrap: 'break-word',
   },
 });
 
