@@ -12,6 +12,7 @@ import {
 import CustomButton from '../components/CustomButton';
 import InputField from '../components/InputField';
 import TopBar from '../components/TopBar';
+import {Picker} from '@react-native-picker/picker';
 
 // import RegistrationSVG from '../assets/images/misc/registration.svg';
 // import GoogleSVG from '../assets/images/misc/google.svg';
@@ -21,6 +22,9 @@ const RegisterScreen = ({navigation}) => {
   const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false);
   const [dobLabel, setDobLabel] = useState('Date of Birth');
+
+  const [gender, setGender] = useState(''); // 性别状态
+  const [age, setAge] = useState(''); // 年龄状态
 
   const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
@@ -45,8 +49,10 @@ const RegisterScreen = ({navigation}) => {
 
   // 註冊的函數
   //這裡把註冊的資料傳到後端
+  // const API_URL = 'http://52.68.188.15/';
+  //'http://192.168.1.105:8080/users/register'
   const registration = () => {
-    if (email && nickname && password && confirmPassword) {
+    if (email && nickname && password && confirmPassword && gender && age) {
       fetch('http://52.68.188.15/users/register', {
         method: 'POST',
         headers: {
@@ -56,6 +62,8 @@ const RegisterScreen = ({navigation}) => {
           email: email,
           password: password,
           name: nickname,
+          gender: gender,
+          age: age,
         }),
       })
         .then(response => response.json())
@@ -129,6 +137,28 @@ const RegisterScreen = ({navigation}) => {
           }}
         />
         {isNicknameEmpty && <Text style={styles.errorText}>暱稱不能為空</Text>}
+
+        {/* 性别选择 */}
+        <Text style={styles.label}>性別</Text>
+        <Picker
+          selectedValue={gender}
+          onValueChange={(itemValue, itemIndex) => setGender(itemValue)}>
+          <Picker.Item label="請選擇" value="" />
+          <Picker.Item label="男" value="Male" />
+          <Picker.Item label="女" value="Female" />
+          <Picker.Item label="其他" value="Other" />
+        </Picker>
+
+        {/* 年龄输入 */}
+        <Text style={styles.label}>年齡</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          placeholder="輸入您的年齡"
+          value={age}
+          onChangeText={setAge}
+        />
+
         <InputField
           label={'密碼'}
           inputType="password"
@@ -182,6 +212,18 @@ const styles = StyleSheet.create({
     color: 'red',
     alignSelf: 'flex-start',
     fontSize: 12,
+  },
+  label: {
+    fontSize: 16,
+    color: '#000',
+    marginTop: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
+    fontSize: 16,
+    borderRadius: 6,
   },
 });
 
