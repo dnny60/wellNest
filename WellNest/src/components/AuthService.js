@@ -5,7 +5,7 @@ import React, {useState, useEffect, useContext} from 'react';
 import {AuthContext} from '../components/AuthContext';
 
 // const API_URL = 'http://192.168.1.105:8080';
-const API_URL = 'http://52.68.188.15/users';
+const API_URL = 'http://52.68.188.15';
 
 const login = async (email, password) => {
   try {
