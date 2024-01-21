@@ -1,81 +1,34 @@
 import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
+import MissionsScreen from '../screens/MissionsScreen';
+import ComicScreen from '../screens/ComicScreen';
+import HomeScreen from '../screens/HomeScreen';
+import EditProfile from '../screens/EditprofileScreen';
 import CustomDrawer from '../components/CustomDrawer';
+import SettingStack from './SettingStack';
 
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import ProfileScreen from '../screens/ProfileScreen';
-import MissonsScreen from '../screens/MissionsScreen';
-import HomeScreen from '../screens/HomeScreen';
-import ComicScreen from '../screens/ComicScreen';
 
-import TabNavigator from './TabNavigator';
-
+const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
-const AuthStack = () => {
+const AppStack = () => {
   return (
-    <Drawer.Navigator
-      drawerContent={props => <CustomDrawer {...props} />}
-      screenOptions={{
-        headerShown: false,
-        drawerActiveBackgroundColor: '#aa18ea',
-        drawerActiveTintColor: '#fff',
-        drawerInactiveTintColor: '#333',
-        drawerLabelStyle: {
-          marginLeft: -25,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 15,
-        },
-      }}>
-      <Drawer.Screen
-        name="Home"
-        component={TabNavigator}
-        options={{
-          drawerIcon: ({color}) => (
-            <Ionicons name="home-outline" size={22} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Mission"
-        component={MissonsScreen}
-        options={{
-          drawerIcon: ({color}) => (
-            <Ionicons name="person-outline" size={22} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Comics"
-        component={ComicScreen}
-        options={{
-          drawerIcon: ({color}) => (
-            <Ionicons name="chatbox-ellipses-outline" size={22} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          drawerIcon: ({color}) => (
-            <Ionicons name="timer-outline" size={22} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          drawerIcon: ({color}) => (
-            <Ionicons name="settings-outline" size={22} color={color} />
-          ),
-        }}
-      />
+    <Drawer.Navigator drawerContent={props => <CustomDrawer{...props}/>} screenOptions={{headerShown: false}}>
+      <Drawer.Screen name="Home" component={HomeScreen} options={{
+        drawerIcon:({color}) => (
+          <Ionicons name="home-outline" size={22} color={color}/>
+        )
+      }}/>
+      <Drawer.Screen name="Setting" component={SettingStack} >
+      </Drawer.Screen>
+      <Drawer.Screen name="Comic" component={ComicScreen} />
+      <Drawer.Screen name="Mission" component={MissionsScreen} />
     </Drawer.Navigator>
   );
 };
 
-export default AuthStack;
+export default AppStack;

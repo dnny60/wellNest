@@ -1,39 +1,35 @@
 import React from 'react';
-import {TouchableOpacity, View, Text} from 'react-native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import { TouchableOpacity, View, Text} from 'react-native';
+import { COLORS, FONTS } from "../constants";
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const TopBar = ({navigation}) => {
-  return (
-    <View
-      style={{
-        flex: 0.1,
-        marginTop: 10,
-        justifyContent: 'center',
-        flexDirection: 'row',
-        alignItems: 'center',
-      }}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={{
-          flex: 0.6,
-          alignItems: 'flex-start',
-        }}>
-        <AntDesign name="arrowleft" size={30} color="black" />
-      </TouchableOpacity>
-      <Text
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'black',
-          fontSize: 20,
-          fontFamily: 'Rhodium Libre',
-          fontWeight: '400',
-        }}>
-        WellNest
-      </Text>
-    </View>
-  );
+
+const TopBar = ({ navigation }) => { 
+    return (
+        <View style={{
+            
+            marginHorizontal: 12,
+            justifyContent:'center',
+            flexDirection:'row',
+            }}>
+                <TouchableOpacity onPress={() => navigation.goBack()} 
+                    style={{
+                        position: "absolute",
+                        left: 0,
+                                
+                    }}>
+                     <Icon
+                        name={'arrow-left'}
+                        size={35}
+                        color={'black'}
+                        />
+                       
+                </TouchableOpacity>
+                <Text style={{ ...FONTS.h3 }}> WellNest </Text>
+            
+        </View>
+
+      );
 };
 
 export default TopBar;
