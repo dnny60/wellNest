@@ -30,7 +30,7 @@ const OnboardingScreen = ({navigation}) => {
             </Text>
             <Text style={{ textAlign: 'center',
             }}>
-              陪伴你度過每一個低潮，學習與情緒共處
+             陪伴你度過每一個低潮 一起走過最後一哩路
             </Text>
             
           </ScrollView>

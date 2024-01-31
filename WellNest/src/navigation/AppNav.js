@@ -12,6 +12,8 @@ export class AppNav extends Component {
     return (
     <NavigationContainer  style={styles.container}>
         <AuthStack />
+        {/* <AppStack />   */}
+      
     </NavigationContainer>
     )
   }

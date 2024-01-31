@@ -3,7 +3,7 @@ import {ScrollView,SafeAreaView,Text} from 'react-native';
 import TopBar from '../components/TopBar';
 
 
-const ComicScreen = ({navigation}) => {
+const MissionsScreen = ({navigation}) => {
   return (
     <SafeAreaView style={{flex:1,backgroundColor:'#EDEBDC',}}>
     <TopBar navigation={navigation} />
@@ -13,11 +13,11 @@ const ComicScreen = ({navigation}) => {
           fontWeight: '400',
           color: '#80351E',
 
-        }}>Comic Screen 
+        }}>Mission Screen 
         </Text>
       </ScrollView>
   </SafeAreaView>
   )
 }
 
-export default ComicScreen
+export default MissionsScreen
