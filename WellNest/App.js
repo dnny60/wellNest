@@ -1,19 +1,5 @@
+
 import React from 'react';
-import {StyleSheet} from 'react-native';
-
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-
-import AuthStack from './src/navigation/AuthStack';
-
-function App() {
-  return (
-    <NavigationContainer style={styles.container}>
-      {/* <AppStack /> */}
-      <AuthStack />
-    </NavigationContainer>
-  );
-}import React from 'react';
 import {StyleSheet} from 'react-native';
 
 import { AuthProvider } from './src/content/Authcontent';
