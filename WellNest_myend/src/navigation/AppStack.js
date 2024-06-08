@@ -7,36 +7,62 @@ import ComicScreen from '../screens/ComicScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import SettingStack from './SettingStack';
-
+import QuestionnaireScreen from '../screens/QuestionnaireScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
 const AppStack = () => {
   return (
-    <Drawer.Navigator drawerContent={props => <CustomDrawer{...props}/>} screenOptions={{headerShown: false}}>
-      <Drawer.Screen name="主頁" component={HomeScreen} options={{
-        drawerIcon:({color}) => (
-          <Ionicons name="home-outline" size={22} color={color}/>
-        )
-      }}/>
-      <Drawer.Screen name="漫畫" component={ComicScreen}  options={{
-        drawerIcon:({color}) => (
-          <Ionicons name="book" size={22} color={color}/>
-        )
-      }}/>
-      <Drawer.Screen name="任務" component={MissionsScreen} options={{
-        drawerIcon:({color}) => (
-          <Ionicons name="list" size={22} color={color}/>
-        )
-      }}/>
-      <Drawer.Screen name="設定" component={SettingStack} options={{
-        drawerIcon:({color}) => (
-          <Ionicons name="settings-outline" size={22} color={color}/>
-        )
-      }}/>
+    <Drawer.Navigator
+      drawerContent={props => <CustomDrawer {...props} />}
+      screenOptions={{headerShown: false}}>
+      <Drawer.Screen
+        name="主頁"
+        component={HomeScreen}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="home-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="漫畫"
+        component={ComicScreen}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="book" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="任務"
+        component={MissionsScreen}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="list" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="問卷"
+        component={QuestionnaireScreen}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="clipboard-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="設定"
+        component={SettingStack}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="settings-outline" size={22} color={color} />
+          ),
+        }}
+      />
     </Drawer.Navigator>
   );
 };

@@ -1,46 +1,47 @@
 import React, {useState, useEffect, useContext} from 'react';
-import {
-  View,
-  Text,
-  ImageBackground,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, Image, TouchableOpacity, Alert} from 'react-native';
 import {
   DrawerContentScrollView,
   DrawerItemList,
 } from '@react-navigation/drawer';
 import {AuthContext} from '../components/AuthContext';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import AuthService from './AuthService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CustomDrawer = props => {
-
   const {setIsUserLoggedIn} = useContext(AuthContext);
+  const [userName, setUserName] = useState('');
 
-  const handleLogout = async (navigation) => {
-    try {
-      // Call the logout function and pass navigation
-      // await AsyncStorage.removeItem('userToken');
-  
-      // If logout function doesn't throw an error, assume logout is successful
-      setIsUserLoggedIn(false);
-      navigation.navigate('Onboarding');
-    } catch (error) {
-      console.error('登出失败', error);
-      Alert.alert('登出失败');
-    }
+  useEffect(() => {
+    const loadUserName = async () => {
+      try {
+        const storedUserName = await AsyncStorage.getItem('userName');
+        if (storedUserName) {
+          setUserName(storedUserName);
+        }
+      } catch (error) {
+        console.error('Failed to load user name from AsyncStorage', error);
+      }
+    };
+
+    loadUserName();
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userToken');
+    await AsyncStorage.removeItem('user_id');
+    setIsUserLoggedIn(false);
   };
 
-  
   return (
     <View style={{flex: 1}}>
       <DrawerContentScrollView
         {...props}
         contentContainerStyle={{backgroundColor: '#FCF7E8'}}>
-        <View style={{
-          padding:20,
-        }}>
+        <View
+          style={{
+            padding: 20,
+          }}>
           <Image
             source={require('../assets/Images/user-profile.jpg')}
             style={{height: 80, width: 80, borderRadius: 40, marginBottom: 10}}
@@ -52,19 +53,16 @@ const CustomDrawer = props => {
               fontFamily: 'Roboto-Medium',
               marginBottom: 5,
             }}>
-            John Doe
+            {userName || 'User'}
           </Text>
-    
         </View>
 
         <View style={{flex: 1, backgroundColor: '#fff', paddingTop: 10}}>
           <DrawerItemList {...props} />
         </View>
-
       </DrawerContentScrollView>
       <View style={{padding: 20, borderTopWidth: 1, borderTopColor: '#ccc'}}>
-        
-        <TouchableOpacity  onPress={handleLogout}  style={{paddingVertical: 15}}>
+        <TouchableOpacity onPress={handleLogout} style={{paddingVertical: 15}}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
             <Ionicons name="exit-outline" size={22} />
             <Text
@@ -81,8 +79,5 @@ const CustomDrawer = props => {
     </View>
   );
 };
-
-
-
 
 export default CustomDrawer;
