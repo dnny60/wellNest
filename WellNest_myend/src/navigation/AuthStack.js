@@ -15,30 +15,13 @@ const Stack = createNativeStackNavigator();
 const AuthStack = () => {
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(null);
 
-  // useEffect(() => {
-  //   const checkLoginStatus = async () => {
-  //     try {
-  //       const token = await AsyncStorage.getItem('userToken');
-  //       console.log('Token:', token);
-  //       //true false記得改回來
-  //       if (token) {
-  //         setIsUserLoggedIn(true);
-  //       } else {
-  //         setIsUserLoggedIn(false);
-  //       }
-  //     } catch (e) {
-  //       console.error(e);
-  //     }
-  //   };
 
-  //   checkLoginStatus();
-  // }, []);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
       // 这里我们不从 AsyncStorage 获取token，
       // 而是直接设置一个前端测试的登录状态，true为已登录，false为未登录
-      const testLoggedInStatus = false; // 改为true来模拟已登录状态，false表示未登录
+      const testLoggedInStatus = true; // 改为true来模拟已登录状态，false表示未登录
       setIsUserLoggedIn(testLoggedInStatus);
     };
 

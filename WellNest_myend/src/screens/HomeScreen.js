@@ -238,7 +238,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   messageContainer: {
-    borderRadius: 15,
     marginVertical: 5,
     marginHorizontal: 10,
     padding: 10,
@@ -246,10 +245,14 @@ const styles = StyleSheet.create({
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#E3B7AA',
+    borderRadius:14,
+    borderBottomRightRadius:0.5,
   },
   aiMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#B3E3AA',
+    backgroundColor: '#E3B7AA',
+    borderRadius:14,
+    borderBottomLeftRadius:0.5,
   },
   inputContainer: {
     backgroundColor: 'white',
