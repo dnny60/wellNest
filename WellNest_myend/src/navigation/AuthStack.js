@@ -5,8 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
-import SurveyScreen from '../screens/SurveyScreen';
-import Question1 from '../screens/Question1'
+import SurveyScreen from '../screens/QuestionnaireStartScreen';
+import Question1 from '../screens/Question1';
 import {AuthContext} from '../components/AuthContext';
 import AppStack from './AppStack';
 
@@ -27,8 +27,6 @@ const AuthStack = () => {
 
     checkLoginStatus();
   }, []);
-
-
 
   if (isUserLoggedIn === null) {
     return null; // 或者加载中的指示器

@@ -8,6 +8,7 @@ import HomeScreen from '../screens/HomeScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import SettingStack from './SettingStack';
 import QuestionnaireScreen from '../screens/QuestionnaireScreen';
+import QuestionnaireStack from './QuestionnaireStack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Stack = createNativeStackNavigator();
@@ -47,13 +48,14 @@ const AppStack = () => {
       />
       <Drawer.Screen
         name="問卷"
-        component={QuestionnaireScreen}
+        component={QuestionnaireStack}
         options={{
           drawerIcon: ({color}) => (
             <Ionicons name="clipboard-outline" size={22} color={color} />
           ),
         }}
       />
+
       <Drawer.Screen
         name="設定"
         component={SettingStack}
