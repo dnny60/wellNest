@@ -14,6 +14,25 @@ const ResultScreen = ({route, navigation}) => {
     });
   };
 
+  const getResultInterpretation = () => {
+    const suicidalThoughtsScore =
+      answers[questions.findIndex(q => q.questionText.includes('自殺的想法'))];
+
+    if (suicidalThoughtsScore && suicidalThoughtsScore >= 2) {
+      return '有自殺想法評分為2分以上（中等程度）：建議尋求精神醫療專業諮詢';
+    } else if (totalScore <= 5) {
+      return '一般正常範圍';
+    } else if (totalScore <= 9) {
+      return '輕度情緒困擾：建議找親友談談，抒發情緒';
+    } else if (totalScore <= 14) {
+      return '中度情緒困擾：建議尋求心理衛生或精神醫療專業諮詢';
+    } else {
+      return '重度情緒困擾：建議尋求精神醫療專業諮詢';
+    }
+  };
+
+  const interpretation = getResultInterpretation();
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.resultTitle}>測試結果</Text>
@@ -25,6 +44,7 @@ const ResultScreen = ({route, navigation}) => {
           </View>
         ))}
         <Text style={styles.resultTotal}>總分: {totalScore}</Text>
+        <Text style={styles.resultInterpretation}>{interpretation}</Text>
       </ScrollView>
       <TouchableOpacity style={styles.button} onPress={handleHomePress}>
         <Text style={styles.buttonText}>返回主頁</Text>
@@ -59,6 +79,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 16,
+  },
+  resultInterpretation: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+    color: '#FF0000',
   },
   button: {
     backgroundColor: '#FF8C00',

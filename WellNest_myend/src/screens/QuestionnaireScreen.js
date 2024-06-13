@@ -94,13 +94,23 @@ const QuestionnaireScreen = ({navigation}) => {
   };
 
   const handleSubmit = async () => {
-    const totalScore = answers.reduce((total, num) => total + (num || 0), 0);
+    // Exclude the score for the question about suicidal thoughts
+    const suicidalThoughtsIndex = questions.findIndex(q =>
+      q.questionText.includes('自殺的想法'),
+    );
+    const totalScore = answers.reduce((total, num, index) => {
+      if (index !== suicidalThoughtsIndex) {
+        return total + (num || 0);
+      }
+      return total;
+    }, 0);
+
     console.log('提交問卷', answers);
     console.log('Total score:', totalScore);
 
     try {
       await axios.post(
-        'http://192.168.1.101:8080/scales',
+        'http://192.168.1.103:8080/scales',
         {
           userId: userId,
           totalScore: totalScore,
