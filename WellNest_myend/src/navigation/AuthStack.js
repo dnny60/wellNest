@@ -5,10 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
-import SurveyScreen from '../screens/QuestionnaireStartScreen';
-import Question1 from '../screens/Question1';
 import {AuthContext} from '../components/AuthContext';
 import AppStack from './AppStack';
+import QuestionnaireStack from './QuestionnaireStack';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,8 +45,7 @@ const AuthStack = () => {
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="Survey" component={SurveyScreen} />
-            <Stack.Screen name="Q1" component={Question1} />
+            <Stack.Screen name="Survey" component={QuestionnaireStack} />
           </>
         )}
       </Stack.Navigator>

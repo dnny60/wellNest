@@ -88,9 +88,9 @@ const QuestionnaireScreen = ({navigation}) => {
     newAnswers[currentQuestionIndex] = parseInt(option, 10);
     setAnswers(newAnswers);
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
+    // if (currentQuestionIndex < questions.length - 1) {
+    //   setCurrentQuestionIndex(currentQuestionIndex + 1);
+    // }
   };
 
   const handleSubmit = async () => {
@@ -199,7 +199,10 @@ const QuestionnaireScreen = ({navigation}) => {
               {currentOptions.map((option, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={styles.touchableborder}
+                  style={[
+                    styles.touchableborder,
+                    answers[currentQuestionIndex] === parseInt(option) ? styles.selectedOption : null
+                  ]}
                   onPress={() => handleAnswer(option)}>
                   <Text style={styles.circleborder}>{option}</Text>
                 </TouchableOpacity>
@@ -355,6 +358,9 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     borderWidth: 1.7,
     display: 'flex',
+  },
+  selectedOption: {
+    backgroundColor: '#E3B7AA', // Gold color for selection
   },
 });
 
