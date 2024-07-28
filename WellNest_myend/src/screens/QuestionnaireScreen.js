@@ -16,7 +16,7 @@ import axios from 'axios';
 
 const questions = [
   {
-    questionText: '睡眠困難（譬如難以入睡、易醒或早醒）',
+    questionText: '難以入睡、易醒或早醒',
     options: ['1', '2', '3', '4', '5'],
     imageUri: require('../assets/material/10.png'),
   },
@@ -141,9 +141,7 @@ const QuestionnaireScreen = ({navigation}) => {
       <SafeAreaView style={styles.safeArea}>
         <TopBar navigation={navigation} />
         <View style={styles.questionContainer}>
-          <Text style={styles.titleText}>
-            第 {currentQuestionIndex + 1} / {questions.length} 題
-          </Text>
+         
           <Text
             style={{
               margin: 5,
@@ -151,7 +149,7 @@ const QuestionnaireScreen = ({navigation}) => {
               fontWeight: 600,
               textAlign: 'center',
             }}>
-            請選填最近一個星期（含今天），你對下列問題感受到的嚴重程度
+            最近一個星期，你的感受如何？
           </Text>
         </View>
         <View style={styles.imageContainer}>
@@ -163,6 +161,7 @@ const QuestionnaireScreen = ({navigation}) => {
             <Image style={styles.image} source={currentQuestion.imageUri} />
           </View>
         </View>
+       
         <View style={styles.progressBarContainer}>
           <View
             style={{
@@ -174,7 +173,7 @@ const QuestionnaireScreen = ({navigation}) => {
               <Icon
                 key={index}
                 name={'remove-outline'}
-                size={35}
+                size={45}
                 color={index === currentQuestionIndex ? 'black' : '#DADADA'}
                 style={styles.progressIcon}
               />
@@ -204,7 +203,7 @@ const QuestionnaireScreen = ({navigation}) => {
                     answers[currentQuestionIndex] === parseInt(option) ? styles.selectedOption : null
                   ]}
                   onPress={() => handleAnswer(option)}>
-                  <Text style={styles.circleborder}>{option}</Text>
+                  <Text >{option}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -214,14 +213,15 @@ const QuestionnaireScreen = ({navigation}) => {
                 alignContent: 'center',
                 flexDirection: 'row',
               }}>
-              <Text style={{marginStart: -35}}>完全無感</Text>
-              <Text>中等程度</Text>
-              <Text style={{marginEnd: -35}}>非常有感</Text>
+              <Text style={{ fontSize: 12,marginStart: -35}}>完全無感</Text>
+              <Text style={{fontSize: 12,}}>中等程度</Text>
+              <Text style={{fontSize: 12,marginEnd: -35}}>非常有感</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.navigationContainer}>
+          
           <TouchableOpacity style={styles.goBackButton} onPress={goBack}>
             <Text style={styles.goBackText}>返回</Text>
           </TouchableOpacity>
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     margin: 15,
-    ...FONTS.h1,
+    ...FONTS.hㄉ,
     fontWeight: 'bold',
   },
   descriptionText: {
@@ -293,7 +293,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FCF7E8',
     marginLeft: 30,
     marginRight: 30,
-    paddingBottom: 36,
     borderRadius: 28,
     justifyContent: 'center',
     alignContent: 'center',
@@ -339,9 +338,9 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   touchableborder: {
-    height: 42,
-    width: 42,
-    borderRadius: 10,
+    height: 40,
+    width: 40,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     textAlign: 'center',

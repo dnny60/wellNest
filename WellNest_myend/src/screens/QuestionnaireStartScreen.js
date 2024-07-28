@@ -26,66 +26,37 @@ const QuestionnaireStartScreen = ({navigation}) => {
           flexDirection: 'column',
         }}>
         <TopBar navigation={navigation} />
-        <View
-          style={{
-            justifycontent: 'center',
-            alignItems: 'center',
-            marginTop: 30,
-            paddingLeft: 50,
-            paddingRight: 50,
-          }}>
+        <View style={styles.container}>
+          <Text style={styles.title}>心情溫度計</Text>
           <Text
             style={{
               margin: 5,
-              ...FONTS.h1,
-              fontWeight: 600,
-            }}>
-            簡式健康量表
-          </Text>
-          <Text
-            style={{
-              margin: 5,
-              ...FONTS.h1,
-              fontWeight: 600,
+              ...FONTS.h5,
+              fontWeight: 200,
             }}>
             問卷簡介
           </Text>
         </View>
         <View
-          style={{
-            flex: 1,
-            marginTop: 10,
-            marginLeft: 35,
-            marginRight: 35,
-            padding: 35,
-            borderRadius: 35,
-            backgroundColor: '#EFD19A',
-          }}>
+          style={styles.wrapper}>
           <View
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              paddingBottom: 20,
-            }}>
+            style={styles.imagewrapper}>
             <Image
-              style={{
-                flex: 1,
-                resizeMode: 'contain',
-              }}
+              style={styles.imagecontainer}
               source={require('../assets/material/test.png')}
             />
           </View>
           <View
             style={{
-              flex: 2,
+              flex: 1,
+              marginBottom: 5,
             }}>
             <Text
               style={{
-                marginBottom: 30,
                 lineHeight: 30,
               }}>
-              簡式健康量表 (Brief Symptom Rating Scale, BSRS)，
-              又名「心情溫度計」， 是一種能夠探尋心理狀態的篩檢工具。
+              簡式健康量表 (BSRS)，
+              是一種能夠探尋心理狀態的篩檢工具。
             </Text>
             <Text
               style={{
@@ -118,12 +89,42 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
   },
+  container: {
+    justifycontent: 'center',
+    alignItems: 'center',
+    marginTop: 30,
+    paddingLeft: 50,
+    paddingRight: 50,
+  },
+  title: {
+    margin: 5,
+    ...FONTS.h1,
+    fontWeight: 600,
+  },
+  wrapper:{
+    flex: 1,
+    marginTop: 10,
+    marginLeft: 35,
+    marginRight: 35,
+    padding: 35,
+    borderRadius: 35,
+    backgroundColor: '#EFD19A',
+  },
   text: {
     color: 'white',
     fontSize: 15,
     fontFamily: 'Rhodium Libre',
     fontWeight: 'bold',
     margin: 10,
+  },
+  imagewrapper:{
+    flex: 1,
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  imagecontainer:{
+    flex: 1,
+    resizeMode: 'contain',
   },
   button: {
     backgroundColor: 'black',
