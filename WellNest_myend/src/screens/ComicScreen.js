@@ -1,21 +1,19 @@
 import React from 'react';
-import {ScrollView, SafeAreaView, Text} from 'react-native';
+import {ScrollView, SafeAreaView, Text, View} from 'react-native';
 import TopBar from '../components/TopBar';
+import AnimalScene from '../scenes/animalScene';
 
 const ComicScreen = ({navigation}) => {
   return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#EDEBDC'}}>
+    <SafeAreaView
+      style={{flex: 1, flexDirection: 'column', backgroundColor: '#EDEBDC'}}>
       <TopBar navigation={navigation} />
-      <ScrollView style={{flex: 1}}>
-        <Text
-          style={{
-            fontSize: 50,
-            fontWeight: '400',
-            color: '#80351E',
-          }}>
-          Comic Screen
-        </Text>
-      </ScrollView>
+      <View style={{flex: 1}}>
+        
+       <Text>
+        comic section
+       </Text>
+      </View>
     </SafeAreaView>
   );
 };

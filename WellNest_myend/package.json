@@ -21,7 +21,12 @@
     "@react-navigation/drawer": "^6.6.6",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
+    "@react-three/drei": "^9.109.2",
+    "@react-three/fiber": "^8.16.8",
     "axios": "^1.6.7",
+    "expo": "^50.0.0",
+    "expo-gl": "~13.6.0",
+    "r3f-native-orbitcontrols": "^1.0.12",
     "react": "18.2.0",
     "react-native": "^0.73.2",
     "react-native-date-picker": "^4.3.5",
@@ -40,7 +45,8 @@
     "react-native-screens": "^3.29.0",
     "react-native-sound": "^0.11.2",
     "react-native-sse": "^1.2.1",
-    "react-native-vector-icons": "^10.0.3"
+    "react-native-vector-icons": "^10.0.3",
+    "three": "^0.167.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

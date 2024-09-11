@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -7,22 +7,27 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopBar from '../components/TopBar';
 import Icon from 'react-native-vector-icons/Ionicons';
 import EventSource from 'react-native-event-source';
-import {AuthContext} from '../components/AuthContext';
+import { AuthContext } from '../components/AuthContext';
 import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
+import AnimalScene from '../scenes/animalScene';
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = ({ navigation }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [currentAiMessage, setCurrentAiMessage] = useState('');
   const [userId, setUserId] = useState('');
   const authContext = useContext(AuthContext);
-  const {setIsUserLoggedIn} = authContext;
+  const { setIsUserLoggedIn } = authContext;
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioQueue, setAudioQueue] = useState([]);
 
@@ -49,23 +54,12 @@ const HomeScreen = ({navigation}) => {
   }, [audioQueue, isPlaying]);
 
   const addTestSoundToQueue = () => {
-    // 假设你已经把 NAYEON POP! MV.aac 放在了适当的位置
-    const testSoundPath = 'Magnetic.aac'; // 注意: 这个路径可能需要根据你的文件存放位置进行调整
-    // 将测试音频添加到播放队列中
-    // setAudioQueue(currentQueue => [...currentQueue, testSoundPath]);
+    const testSoundPath = 'Magnetic.aac';
     var song = new Sound(testSoundPath, Sound.MAIN_BUNDLE, error => {
       if (error) {
         console.log('failed to load the sound', error);
         return;
       }
-      // loaded successfully
-      console.log(
-        'duration in seconds: ' +
-          song.getDuration() +
-          'number of channels: ' +
-          song.getNumberOfChannels(),
-      );
-      // Play the sound with an onEnd callback
       song.play(success => {
         if (success) {
           console.log('successfully finished playing');
@@ -77,16 +71,14 @@ const HomeScreen = ({navigation}) => {
   };
 
   const playNextAudio = () => {
-    // 只有当队列中有音频且当前没有音频正在播放时才继续
     if (audioQueue.length > 0 && !isPlaying) {
       console.log('Playing next audio:', audioQueue[0]);
-      setIsPlaying(true); // 标记为正在播放
-      const nextAudioPath = audioQueue[0]; // 获取队列中的下一个音频
+      setIsPlaying(true);
+      const nextAudioPath = audioQueue[0];
 
       const sound = new Sound(nextAudioPath, '', error => {
         if (error) {
-          console.error('加载音频文件失败:', error);
-          // 出错时重置状态并尝试播放下一个音频
+          console.error('載入音频文件失敗:', error);
           setIsPlaying(false);
           setAudioQueue(queue => queue.slice(1));
           return;
@@ -94,14 +86,13 @@ const HomeScreen = ({navigation}) => {
 
         sound.play(success => {
           if (success) {
-            console.log('音频播放成功');
+            console.log('音檔播放成功');
           } else {
-            console.log('音频播放失败');
+            console.log('音檔播放失敗');
           }
-          sound.release(); // 释放资源
-
-          setAudioQueue(queue => queue.slice(1)); // 移除已播放的音频
-          setIsPlaying(false); // 重置播放状态
+          sound.release();
+          setAudioQueue(queue => queue.slice(1));
+          setIsPlaying(false);
         });
       });
     }
@@ -111,7 +102,7 @@ const HomeScreen = ({navigation}) => {
     if (!inputMessage.trim()) return;
     setMessages(prevMessages => [
       ...prevMessages,
-      {sender: 'user', text: inputMessage},
+      { sender: 'user', text: inputMessage },
     ]);
     setInputMessage('');
 
@@ -120,39 +111,35 @@ const HomeScreen = ({navigation}) => {
     )}`;
     let eventSource = new EventSource(url);
 
-    let aiMessageBuffer = ''; // 用于累积AI的消息
+    let aiMessageBuffer = '';
 
     eventSource.addEventListener('message', event => {
       const data = JSON.parse(event.data);
 
       if (data && data.code === 0) {
         if (data.data.messageType === 'AUDIO') {
-          const base64Audio = data.data.message; // Base64编码的音频数据
+          const base64Audio = data.data.message;
           const audioPath = `${
             RNFS.DocumentDirectoryPath
           }/${new Date().getTime()}`;
 
-          // 将Base64编码的音频数据写入文件
           RNFS.writeFile(audioPath, base64Audio, 'base64')
             .then(() => {
-              console.log('音频文件写入成功:', audioPath); // 打印文件路径
+              console.log('音樂寫入成功:', audioPath);
               setAudioQueue(currentQueue => [...currentQueue, audioPath]);
             })
-            .catch(err => console.error('写入音频文件失败:', err));
+            .catch(err => console.error('音樂寫入失败:', err));
         } else if (data.data.messageType === 'TEXT') {
           const messageText = data.data.message;
 
           if (messageText !== '#') {
-            // 累积AI的消息到缓冲区
             aiMessageBuffer += messageText;
-            // 动态更新当前AI消息，仅用于显示
             setCurrentAiMessage(aiMessageBuffer);
           } else {
-            // 当收到"#"时，将累积的消息添加到messages中，并清空aiMessageBuffer
             if (aiMessageBuffer.trim() !== '') {
               setMessages(prevMessages => [
                 ...prevMessages,
-                {sender: 'ai', text: aiMessageBuffer},
+                { sender: 'ai', text: aiMessageBuffer },
               ]);
               aiMessageBuffer = '';
               setCurrentAiMessage('');
@@ -179,63 +166,64 @@ const HomeScreen = ({navigation}) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TopBar navigation={navigation} />
-
-      <ScrollView style={styles.chatContainer}>
-        {messages.map((msg, index) => (
-          <View
-            key={`${msg.sender}-${index}`}
-            style={[
-              styles.messageContainer,
-              msg.sender === 'user' ? styles.userMessage : styles.aiMessage,
-            ]}>
-            <Text>{msg.text}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#EDEBDC' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ flex: 1 }}>
+            <TopBar navigation={navigation} />
+            <ScrollView style={styles.chatContainer}>
+              {messages.map((msg, index) => (
+                <View
+                  key={`${msg.sender}-${index}`}
+                  style={[
+                    styles.messageContainer,
+                    msg.sender === 'user'
+                      ? styles.userMessage
+                      : styles.aiMessage,
+                  ]}
+                >
+                  <Text>{msg.text}</Text>
+                </View>
+              ))}
+              {currentAiMessage ? (
+                <View style={[styles.messageContainer, styles.aiMessage]}>
+                  <Text>{currentAiMessage}</Text>
+                </View>
+              ) : null}
+            </ScrollView>
+            <View style={{ flex: 1 , marginBottom:-45}}>
+              <AnimalScene />
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Type your message"
+                  value={inputMessage}
+                  onChangeText={setInputMessage}
+                />
+                <TouchableOpacity
+                  onPress={sendMessage}
+                  style={styles.sendButton}
+                >
+                  <Icon name="send" size={30} color="#4C241D" />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        ))}
-        {/* Dynamically display the current AI message being received */}
-        {currentAiMessage ? (
-          <View style={[styles.messageContainer, styles.aiMessage]}>
-            <Text>{currentAiMessage}</Text>
-          </View>
-        ) : null}
-      </ScrollView>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Type your message"
-          value={inputMessage}
-          onChangeText={setInputMessage}
-        />
-        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-          <Icon name="send" size={30} color="#4C241D" />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Log Out</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={addTestSoundToQueue}
-        style={styles.testSoundButton}>
-        <Text style={styles.testSoundButtonText}>Test Sound</Text>
-      </TouchableOpacity>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-// ... (styles)
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#EDEBDC',
-  },
   chatContainer: {
     flex: 1,
     paddingHorizontal: 10,
+    marginTop: 20,
   },
   messageContainer: {
     marginVertical: 5,
@@ -245,14 +233,16 @@ const styles = StyleSheet.create({
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#E3B7AA',
-    borderRadius:14,
-    borderBottomRightRadius:0.5,
+    borderRadius: 14,
+    borderBottomRightRadius: 0.5,
+    marginLeft: 80,
   },
   aiMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#E3B7AA',
-    borderRadius:14,
-    borderBottomLeftRadius:0.5,
+    borderRadius: 14,
+    borderBottomLeftRadius: 0.5,
+    marginRight: 80,
   },
   inputContainer: {
     backgroundColor: 'white',
