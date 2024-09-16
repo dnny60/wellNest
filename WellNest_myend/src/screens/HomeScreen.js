@@ -9,35 +9,48 @@ import {
   StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import TopBar from '../components/TopBar';
-import Icon from 'react-native-vector-icons/Ionicons';
-import EventSource from 'react-native-event-source';
 import {AuthContext} from '../components/AuthContext';
+import EventSource from 'react-native-event-source';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
+import TopBar from '../components/TopBar';
 
 const HomeScreen = ({navigation}) => {
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [currentAiMessage, setCurrentAiMessage] = useState('');
   const [userId, setUserId] = useState('');
+  const [userToken, setUserToken] = useState('');
+  const [showFinishButton, setShowFinishButton] = useState(false);
   const authContext = useContext(AuthContext);
   const {setIsUserLoggedIn} = authContext;
-  const [isPlaying, setIsPlaying] = useState(false);
   const [audioQueue, setAudioQueue] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const initializeChat = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem('user_id');
-        if (storedUserId !== null) {
+        const storedUserToken = await AsyncStorage.getItem('userToken');
+        const chatCreated = await AsyncStorage.getItem('chatCreated');
+
+        if (storedUserId && storedUserToken) {
           setUserId(storedUserId);
+          setUserToken(storedUserToken);
+
+          // Create chat only if it hasn't been created yet
+          if (!chatCreated) {
+            await createChat(storedUserToken);
+            await AsyncStorage.setItem('chatCreated', 'true');
+          }
         }
       } catch (error) {
-        console.error('Failed to fetch user_id from AsyncStorage:', error);
+        console.error('Failed to fetch user data from AsyncStorage:', error);
       }
     };
-    fetchUserId();
+
+    initializeChat();
   }, []);
 
   useEffect(() => {
@@ -48,32 +61,24 @@ const HomeScreen = ({navigation}) => {
     playNextAudio();
   }, [audioQueue, isPlaying]);
 
-  const addTestSoundToQueue = () => {
-    // 假设你已经把 NAYEON POP! MV.aac 放在了适当的位置
-    const testSoundPath = 'Magnetic.aac'; // 注意: 这个路径可能需要根据你的文件存放位置进行调整
-    // 将测试音频添加到播放队列中
-    // setAudioQueue(currentQueue => [...currentQueue, testSoundPath]);
-    var song = new Sound(testSoundPath, Sound.MAIN_BUNDLE, error => {
-      if (error) {
-        console.log('failed to load the sound', error);
-        return;
-      }
-      // loaded successfully
-      console.log(
-        'duration in seconds: ' +
-          song.getDuration() +
-          'number of channels: ' +
-          song.getNumberOfChannels(),
-      );
-      // Play the sound with an onEnd callback
-      song.play(success => {
-        if (success) {
-          console.log('successfully finished playing');
-        } else {
-          console.log('playback failed due to audio decoding errors');
-        }
+  const createChat = async token => {
+    try {
+      const response = await fetch('http://192.168.2.1:8080/chat/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({userId}),
       });
-    });
+      if (response.ok) {
+        console.log('Chat created successfully');
+      } else {
+        console.error('Failed to create chat');
+      }
+    } catch (error) {
+      console.error('Error creating chat:', error);
+    }
   };
 
   const playNextAudio = () => {
@@ -115,7 +120,7 @@ const HomeScreen = ({navigation}) => {
     ]);
     setInputMessage('');
 
-    const url = `http://localhost:8080/chat/message?user=${userId}&prompt=${encodeURIComponent(
+    const url = `http://192.168.2.1:8080/chat/message?user=${userId}&prompt=${encodeURIComponent(
       inputMessage,
     )}`;
     let eventSource = new EventSource(url);
@@ -162,6 +167,8 @@ const HomeScreen = ({navigation}) => {
 
         if (data.data.end) {
           eventSource.close();
+          storeMessage(inputMessage);
+          setShowFinishButton(true); // Show finish button after chat ends
         }
       }
 
@@ -170,6 +177,53 @@ const HomeScreen = ({navigation}) => {
         eventSource.close();
       });
     });
+  };
+
+  const storeMessage = async message => {
+    try {
+      const response = await fetch('http://192.168.2.1:8080/message/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({
+          content: message,
+          userId: parseInt(userId),
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Message stored successfully');
+      } else {
+        console.error('Failed to store message');
+      }
+    } catch (error) {
+      console.error('Error storing message:', error);
+    }
+  };
+
+  const finishChat = async () => {
+    try {
+      const response = await fetch('http://192.168.2.1:8080/chat/finish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({userId}),
+      });
+
+      if (response.ok) {
+        console.log('Chat finished successfully');
+        setShowFinishButton(false); // Hide finish button after finishing chat
+        await AsyncStorage.removeItem('chatCreated'); // Reset chat creation flag
+      } else {
+        console.error('Failed to finish chat');
+      }
+    } catch (error) {
+      console.error('Error finishing chat:', error);
+    }
   };
 
   const handleLogout = async () => {
@@ -181,52 +235,42 @@ const HomeScreen = ({navigation}) => {
   return (
     <SafeAreaView style={styles.container}>
       <TopBar navigation={navigation} />
-
       <ScrollView style={styles.chatContainer}>
         {messages.map((msg, index) => (
           <View
-            key={`${msg.sender}-${index}`}
-            style={[
-              styles.messageContainer,
-              msg.sender === 'user' ? styles.userMessage : styles.aiMessage,
-            ]}>
+            key={index}
+            style={
+              msg.sender === 'user' ? styles.userMessage : styles.aiMessage
+            }>
             <Text>{msg.text}</Text>
           </View>
         ))}
-        {/* Dynamically display the current AI message being received */}
         {currentAiMessage ? (
-          <View style={[styles.messageContainer, styles.aiMessage]}>
-            <Text>{currentAiMessage}</Text>
-          </View>
+          <Text style={styles.aiMessage}>{currentAiMessage}</Text>
         ) : null}
+        {showFinishButton && (
+          <TouchableOpacity style={styles.finishButton} onPress={finishChat}>
+            <Text style={styles.finishButtonText}>Finish Chat</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
-
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Type your message"
           value={inputMessage}
           onChangeText={setInputMessage}
+          placeholder="Type your message..."
         />
-        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
           <Icon name="send" size={30} color="#4C241D" />
         </TouchableOpacity>
       </View>
-
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Log Out</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={addTestSoundToQueue}
-        style={styles.testSoundButton}>
-        <Text style={styles.testSoundButtonText}>Test Sound</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 };
-
-// ... (styles)
 
 const styles = StyleSheet.create({
   container: {
@@ -237,22 +281,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 10,
   },
-  messageContainer: {
+  userMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#E3B7AA',
+    borderRadius: 14,
+    borderBottomRightRadius: 0.5,
     marginVertical: 5,
     marginHorizontal: 10,
     padding: 10,
   },
-  userMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#E3B7AA',
-    borderRadius:14,
-    borderBottomRightRadius:0.5,
-  },
   aiMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#E3B7AA',
-    borderRadius:14,
-    borderBottomLeftRadius:0.5,
+    borderRadius: 14,
+    borderBottomLeftRadius: 0.5,
+    marginVertical: 5,
+    marginHorizontal: 10,
+    padding: 10,
   },
   inputContainer: {
     backgroundColor: 'white',
@@ -267,9 +312,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 20,
+    color: 'black',
   },
   sendButton: {
     marginLeft: 10,
+  },
+  finishButton: {
+    backgroundColor: '#4C241D',
+    borderRadius: 20,
+    padding: 10,
+    marginHorizontal: 10,
+    marginVertical: 10,
+  },
+  finishButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
   },
   logoutButton: {
     backgroundColor: '#4C241D',
