@@ -15,6 +15,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
 import TopBar from '../components/TopBar';
+import AnimalScene from '../scenes/animalScene';
+import ChatbotScene from '../scenes/chatbotScene';
 
 const HomeScreen = ({navigation}) => {
   const [inputMessage, setInputMessage] = useState('');
@@ -254,6 +256,11 @@ const HomeScreen = ({navigation}) => {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      <View style={styles.sceneContainer}>
+        <ChatbotScene />
+      </View>
+
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -280,6 +287,9 @@ const styles = StyleSheet.create({
   chatContainer: {
     flex: 1,
     paddingHorizontal: 10,
+  },
+  sceneContainer: {
+    flex: 0.8,
   },
   userMessage: {
     alignSelf: 'flex-end',

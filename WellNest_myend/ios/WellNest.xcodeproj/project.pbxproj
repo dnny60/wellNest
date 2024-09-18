@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* WellNestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* WellNestTests.m */; };
+		01B975E2A93E05B45025EF40 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EC226952AB3030D004E77FC /* ExpoModulesProvider.swift */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		1FCE2E1B693BC6899C4ED51A /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B90802CE4DD2FB6963DFAFB5 /* ExpoModulesProvider.swift */; };
 		2D6684E02B668EF600D092F0 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = 2D6684DF2B668EF300D092F0 /* Fonts */; };
 		37BEE3172BC5AC1C00D53B73 /* NAYEON POP! MV.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 37BEE3162BC5AC1C00D53B73 /* NAYEON POP! MV.mp3 */; };
 		37BEE3192BC5BA7400D53B73 /* Magnetic.aac in Resources */ = {isa = PBXBuildFile; fileRef = 37BEE3182BC5BA7400D53B73 /* Magnetic.aac */; };
@@ -33,6 +35,7 @@
 		00E356EE1AD99517003FC87E /* WellNestTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WellNestTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* WellNestTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WellNestTests.m; sourceTree = "<group>"; };
+		0EC226952AB3030D004E77FC /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-WellNest-WellNestTests/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* WellNest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WellNest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = WellNest/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = WellNest/AppDelegate.mm; sourceTree = "<group>"; };
@@ -47,6 +50,7 @@
 		9513B99C2007BC2480A90B77 /* Pods-WellNest.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WellNest.release.xcconfig"; path = "Target Support Files/Pods-WellNest/Pods-WellNest.release.xcconfig"; sourceTree = "<group>"; };
 		9767536742537BAE378D4A99 /* Pods-WellNest-WellNestTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WellNest-WellNestTests.debug.xcconfig"; path = "Target Support Files/Pods-WellNest-WellNestTests/Pods-WellNest-WellNestTests.debug.xcconfig"; sourceTree = "<group>"; };
 		B29240969183136CB6FB638E /* libPods-WellNest-WellNestTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WellNest-WellNestTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B90802CE4DD2FB6963DFAFB5 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-WellNest/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		DE44AD9953FFEC577EC4BF60 /* Pods-WellNest.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WellNest.debug.xcconfig"; path = "Target Support Files/Pods-WellNest/Pods-WellNest.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EF197F52DAD9D014E2F78E91 /* Pods-WellNest-WellNestTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WellNest-WellNestTests.release.xcconfig"; path = "Target Support Files/Pods-WellNest-WellNestTests/Pods-WellNest-WellNestTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -131,6 +135,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				FA11F9DA64E425BA87919C7B /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -146,6 +151,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		8779B698EC85A9386975F1AF /* WellNest */ = {
+			isa = PBXGroup;
+			children = (
+				B90802CE4DD2FB6963DFAFB5 /* ExpoModulesProvider.swift */,
+			);
+			name = WellNest;
+			sourceTree = "<group>";
+		};
+		B2F68B9BC1F9972EEE4474FA /* WellNestTests */ = {
+			isa = PBXGroup;
+			children = (
+				0EC226952AB3030D004E77FC /* ExpoModulesProvider.swift */,
+			);
+			name = WellNestTests;
+			sourceTree = "<group>";
+		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -157,6 +178,15 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		FA11F9DA64E425BA87919C7B /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				8779B698EC85A9386975F1AF /* WellNest */,
+				B2F68B9BC1F9972EEE4474FA /* WellNestTests */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -165,6 +195,7 @@
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "WellNestTests" */;
 			buildPhases = (
 				19CB78EE9C59B3F3C02E9A63 /* [CP] Check Pods Manifest.lock */,
+				619CFE5D59CBBBA9E30F0B63 /* [Expo] Configure project */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
@@ -186,6 +217,7 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "WellNest" */;
 			buildPhases = (
 				954435A3CCBC74423B3A1189 /* [CP] Check Pods Manifest.lock */,
+				437606117DE08CF1F03123BE /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
@@ -300,6 +332,25 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		437606117DE08CF1F03123BE /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-WellNest/expo-configure-project.sh\"\n";
+		};
 		5B5DAE913850137E71258039 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -316,6 +367,25 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WellNest-WellNestTests/Pods-WellNest-WellNestTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		619CFE5D59CBBBA9E30F0B63 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-WellNest-WellNestTests/expo-configure-project.sh\"\n";
 		};
 		85406853DCD63B0C2B468EB8 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -398,6 +468,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00E356F31AD99517003FC87E /* WellNestTests.m in Sources */,
+				01B975E2A93E05B45025EF40 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -407,6 +478,7 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				1FCE2E1B693BC6899C4ED51A /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -442,6 +514,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WellNest.app/WellNest";
@@ -466,6 +539,7 @@
 					"-lc++",
 					"$(inherited)",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/WellNest.app/WellNest";
@@ -484,7 +558,7 @@
 				DEVELOPMENT_TEAM = Y8824N7L7K;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = WellNest/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -495,6 +569,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.company.WellNest;
 				PRODUCT_NAME = WellNest;
@@ -516,7 +591,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Y8824N7L7K;
 				INFOPLIST_FILE = WellNest/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -527,6 +602,7 @@
 					"-ObjC",
 					"-lc++",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.company.WellNest;
 				PRODUCT_NAME = WellNest;

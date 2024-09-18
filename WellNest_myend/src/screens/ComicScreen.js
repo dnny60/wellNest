@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Sound from 'react-native-sound';
+import AnimalScene from '../scenes/animalScene';
+import ChatbotScene from '../scenes/chatbotScene';
 
 const ComicScreen = ({navigation}) => {
   const [comics, setComics] = useState([]);
@@ -142,7 +144,7 @@ const ComicScreen = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Comic Gallery</Text>
+      <Text style={styles.title}>Gallery</Text>
       <FlatList
         data={comics}
         renderItem={renderComicCover}
@@ -189,6 +191,7 @@ const ComicScreen = ({navigation}) => {
           onRequestClose={handleModalClose}>
           <SafeAreaView style={styles.modalContainer}>
             <Button title="Close" onPress={handleModalClose} />
+
             <FlatList
               data={selectedComic.comic}
               renderItem={({item}) => (
@@ -202,6 +205,9 @@ const ComicScreen = ({navigation}) => {
               numColumns={2}
               contentContainerStyle={styles.grid}
             />
+            <View style={styles.sceneContainer}>
+              <ChatbotScene />
+            </View>
           </SafeAreaView>
         </Modal>
       )}
@@ -225,6 +231,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  sceneContainer: {
+    flex: 0.6,
+    justifyContent: 'flex-end',
+  },
   coverContainer: {
     margin: 10,
   },
@@ -235,7 +245,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#EDEBDC',
   },
   image: {
     width: '48%',

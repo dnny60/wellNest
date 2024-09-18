@@ -15,6 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopBar from '../components/TopBar';
 import {AuthContext} from '../components/AuthContext';
 import ComicScreen from './ComicScreen';
+import AnimalScene from '../scenes/animalScene';
+import ChatbotScene from '../scenes/chatbotScene';
 
 const API_URL = 'http://192.168.2.1:8080'; // Update this to your actual backend URL
 
@@ -114,7 +116,6 @@ const MissionsScreen = ({navigation}) => {
   return (
     <SafeAreaView style={styles.container}>
       <TopBar navigation={navigation} />
-
       <ScrollView style={styles.chatContainer}>
         <View style={[styles.messageContainer, styles.aiMessage]}>
           <Text>來選擇一樣任務吧～</Text>
@@ -139,6 +140,9 @@ const MissionsScreen = ({navigation}) => {
           )}
         </View>
       </ScrollView>
+      <View style={styles.sceneContainer}>
+        <ChatbotScene />
+      </View>
 
       {/* Modal for user input */}
       <Modal
@@ -169,6 +173,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#EDEBDC',
+  },
+  sceneContainer: {
+    flex: 0.8,
   },
   missionsContainer: {
     justifyContent: 'center',

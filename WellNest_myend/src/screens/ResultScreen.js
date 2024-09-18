@@ -3,6 +3,7 @@ import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {COLORS, FONTS} from '../constants';
 import {ScrollView} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import TopBar from '../components/TopBar';
 
 const ResultScreen = ({route, navigation}) => {
   const {questions, answers, totalScore} = route.params;
@@ -19,7 +20,13 @@ const ResultScreen = ({route, navigation}) => {
       answers[questions.findIndex(q => q.questionText.includes('自殺的想法'))];
 
     if (suicidalThoughtsScore && suicidalThoughtsScore >= 2) {
-      return '有自殺想法評分為2分以上（中等程度）：建議尋求精神醫療專業諮詢';
+      return (
+        <Text style={styles.resultInterpretation}>
+          有自殺想法評分為
+          <Text style={styles.highlightText}> 2分以上（中等程度）: </Text>
+          建議尋求精神醫療專業諮詢
+        </Text>
+      );
     } else if (totalScore <= 5) {
       return '一般正常範圍';
     } else if (totalScore <= 9) {
@@ -35,20 +42,23 @@ const ResultScreen = ({route, navigation}) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.resultTitle}>測試結果</Text>
-      <ScrollView>
-        {questions.map((question, index) => (
-          <View key={index} style={styles.resultItem}>
-            <Text style={styles.resultQuestion}>{question.questionText}</Text>
-            <Text style={styles.resultAnswer}>得分: {answers[index]}</Text>
-          </View>
-        ))}
-        <Text style={styles.resultTotal}>總分: {totalScore}</Text>
-        <Text style={styles.resultInterpretation}>{interpretation}</Text>
-      </ScrollView>
-      <TouchableOpacity style={styles.button} onPress={handleHomePress}>
-        <Text style={styles.buttonText}>返回主頁</Text>
-      </TouchableOpacity>
+      <TopBar navigation={navigation} />
+      <View style={styles.resultContainer}>
+        <Text style={styles.resultTitle}>測試結果</Text>
+        <ScrollView>
+          {questions.map((question, index) => (
+            <View key={index} style={styles.resultItem}>
+              <Text style={styles.resultQuestion}>{question.questionText}</Text>
+              <Text style={styles.resultAnswer}>得分: {answers[index]}</Text>
+            </View>
+          ))}
+          <Text style={styles.resultTotal}>總分: {totalScore}</Text>
+          <View style={styles.wrapper}>{interpretation}</View>
+        </ScrollView>
+        <TouchableOpacity style={styles.button} onPress={handleHomePress}>
+          <Text style={styles.buttonText}>返回主頁</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -56,46 +66,80 @@ const ResultScreen = ({route, navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#EDEBDC',
+  },
+  resultContainer: {
+    marginTop: 15,
+    justifyContent: 'center',
+    paddingLeft: 15,
+    paddingRight: 15,
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFF5E1',
   },
   resultTitle: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 16,
+    textAlign: 'center',
   },
   resultItem: {
-    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    margin: 8,
+    padding: 18,
+    backgroundColor: '#FCF7E8',
+    borderRadius: 10,
   },
   resultQuestion: {
     fontSize: 16,
+    textAlign: 'left',
   },
   resultAnswer: {
     fontSize: 16,
+    color: '#80351E',
     fontWeight: 'bold',
+    textAlign: 'right',
   },
   resultTotal: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: 'bold',
     marginTop: 16,
+    textAlign: 'center',
+  },
+  wrapper: {
+    backgroundColor: '#FDD3D3',
+    borderRadius: 15,
+    margin: 10,
+    padding: 10,
+    justifyContent: 'center',
+  },
+  highlightText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF0000', // 高亮顏色
+    fontWeight: 'bold', // 選擇加粗顯示
   },
   resultInterpretation: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 16,
-    color: '#FF0000',
+    margin: 10,
+    color: 'black',
   },
   button: {
-    backgroundColor: '#FF8C00',
+    height: 48,
+    width: 143,
+    backgroundColor: 'black',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     marginTop: 16,
+    justifyContent: 'center',
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: 'white',
     fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
