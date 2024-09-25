@@ -110,7 +110,7 @@ const QuestionnaireScreen = ({navigation}) => {
 
     try {
       await axios.post(
-        'http://192.168.1.103:8080/scales',
+        'http://172.20.10.3:8080/scales',
         {
           userId: userId,
           totalScore: totalScore,

@@ -6,21 +6,19 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Button,
   Alert,
   Modal,
   TextInput,
+  Button
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopBar from '../components/TopBar';
 import {AuthContext} from '../components/AuthContext';
-import ComicScreen from './ComicScreen';
-import AnimalScene from '../scenes/animalScene';
 import ChatbotScene from '../scenes/chatbotScene';
 
-const API_URL = 'http://192.168.2.1:8080'; // Update this to your actual backend URL
+const API_URL = 'http://172.20.10.3:8080'; // Update this to your actual backend URL
 
-const MissionsScreen = ({navigation}) => {
+const MissionsScreen = ({navigation, route}) => {
   const [missions, setMissions] = useState([]);
   const [userId, setUserId] = useState('');
   const [userToken, setUserToken] = useState('');
@@ -28,6 +26,9 @@ const MissionsScreen = ({navigation}) => {
   const [userInput, setUserInput] = useState('');
   const authContext = useContext(AuthContext);
   const {setIsUserLoggedIn} = authContext;
+  const [selectedMission, setSelectedMission] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [showCompletionButtons, setShowCompletionButtons] = useState(false);
 
   useEffect(() => {
     const initializeMission = async () => {
@@ -45,6 +46,12 @@ const MissionsScreen = ({navigation}) => {
 
     initializeMission();
   }, []);
+
+  useEffect(() => {
+    if (route.params?.autoFetch) {
+      fetchMissions();
+    }
+  }, [route.params]);
 
   const fetchMissions = async () => {
     try {
@@ -66,105 +73,155 @@ const MissionsScreen = ({navigation}) => {
       console.error('Error fetching missions:', error);
     }
   };
-
   const handleMissionPress = mission => {
+    // 彈出 Alert 來確認是否選擇任務
     Alert.alert(
-      '任務完成確認',
-      `你已完成任務 "${mission.content}" 嗎？`,
+      '選擇確認',
+      `你確定要選擇這項任務 "${mission.content}" 嗎？`,
       [
         {
           text: '否',
-          onPress: () => console.log('任務未完成'),
+          onPress: () => console.log('任務選擇取消'),
           style: 'cancel',
         },
         {
-          text: '是',
-          onPress: () => handleMissionCompletion(mission),
+          text: '確定',
+          onPress: () => confirmMissionSelection(mission)
         },
       ],
       {cancelable: false},
     );
   };
 
-  const handleMissionCompletion = mission => {
-    Alert.alert(
-      '生成漫畫',
-      '你想要生成漫畫嗎？',
-      [
-        {
-          text: '否',
-          onPress: () => console.log('不生成漫畫'),
-          style: 'cancel',
-        },
-        {
-          text: '是',
-          onPress: () => setModalVisible(true), // Show input modal
-        },
-      ],
-      {cancelable: false},
-    );
+  const confirmMissionSelection = mission => {
+    // 確認選擇後將該任務設為選中的任務
+    setSelectedMission(mission);
+    const newMessage = `太好了，你選擇了[${mission.content}]！如果你完成了請隨時告訴我。`;
+    setChatMessages(prevMessages => [...prevMessages, {sender: 'ai', text: newMessage}]);
+    setShowCompletionButtons(true); // 顯示完成按鈕
+  };
+ 
+  const handleMissionCompletion = completed => {
+    const userMessage = completed ? '完成了！' : '還沒有';
+    const aiResponse = completed
+      ? '太棒了！我為你生成了新的漫畫，快來看看吧。'
+      : '沒關係，繼續加油！如果完成了隨時告訴我。';
+  
+      setChatMessages(prevMessages => [
+      ...prevMessages,
+      { sender: 'user', text: userMessage },
+      { sender: 'ai', text: aiResponse }
+    ]);
+  
+    if (completed) {
+      setTimeout(() => {
+        // 顯示生成漫畫選項
+        Alert.alert(
+          '生成漫畫',
+          '你想要生成漫畫嗎？',
+          [
+            {
+              text: '否',
+              onPress: () => {
+                // 回傳 "沒問題的呦～ 下次再見！"
+                setMessages(prevMessages => [
+                  ...prevMessages,
+                  { sender: 'ai', text: '沒問題的呦～ 下次再見！' }
+                ]);
+              },
+            },
+            {
+              text: '是',
+              onPress: () => navigation.navigate('主頁', { generateComic: true }), // 導向主畫面且生成漫畫
+            },
+          ],
+          { cancelable: false }
+        );
+      }, 1000);
+    }
   };
 
-  const handleSubmit = () => {
-    console.log('User input:', userInput);
-    // Implement logic to handle user input, such as sending it to the backend
-    setModalVisible(false);
-    setUserInput('');
-    navigation.navigate('漫畫'); // Navigate to ComicScreen
-  };
+
 
   return (
     <SafeAreaView style={styles.container}>
       <TopBar navigation={navigation} />
+      
       <ScrollView style={styles.chatContainer}>
-        <View style={[styles.messageContainer, styles.aiMessage]}>
-          <Text>來選擇一樣任務吧～</Text>
-        </View>
+        {/* Chat messages */}
+        {chatMessages.map((msg, index) => (
+          <View
+            key={index}
+            style={msg.sender === 'user' ? styles.userMessage : styles.aiMessage}>
+            <Text>{msg.text}</Text>
+          </View>
+        ))}
 
-        {/* 任務列表 */}
-        <View style={styles.missionsContainer}>
-          {missions.length > 0 ? (
-            missions.map((mission, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.missionContainer}
-                onPress={() => handleMissionPress(mission)}>
-                <Text style={styles.missionText}>{mission.content}</Text>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View>
-              <Text style={styles.noMissionText}>暫時沒有任務。</Text>
-              <Button title="獲取任務" onPress={fetchMissions} />
-            </View>
-          )}
-        </View>
+     {/* 任務列表 */}
+    <View style={styles.missionsContainer}>
+      {selectedMission ? (
+        // 顯示已選擇的任務並禁用按鈕
+        <TouchableOpacity
+          style={[styles.missionContainer, styles.selectedMissionContainer]}
+          disabled={true} // 禁用按鈕
+        >
+          <Text style={[styles.missionText, styles.selectedMissionText]}>
+            {selectedMission.content}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        // 顯示任務列表，未選擇時任務按鈕啟用
+        missions.length > 0 ? (
+          missions.map((mission, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.missionContainer,
+                selectedMission?.id === mission.id && styles.selectedMissionContainer, // 已選任務樣式
+              ]}
+              onPress={() => handleMissionPress(mission)} // 選擇任務時的操作
+              disabled={selectedMission !== null} // 已選擇的任務禁用按鈕
+            >
+              <Text
+                style={[
+                  styles.missionText,
+                  selectedMission?.id === mission.id && styles.selectedMissionText, // 已選任務的文字樣式
+                ]}
+              >
+                {mission.content}
+              </Text>
+            </TouchableOpacity>
+          ))
+        ) : (
+          // 沒有任務時顯示
+          <View style={styles.noMissionContainer}>
+            <Text style={styles.noMissionText}>這裡空空如也</Text>
+            <Text style={styles.noMissionText}>快來找我聊天領取任務吧～</Text>
+          </View>
+        )
+      )}
+    </View>
+
+        {/* “完成了” 或 “還沒有”按鈕 */}
+        {showCompletionButtons && (
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.completionButton}
+              onPress={() => handleMissionCompletion(true)}>
+              <Text style={styles.buttonText}>完成了</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.completionButton}
+              onPress={() => handleMissionCompletion(false)}>
+              <Text style={styles.buttonText}>還沒有</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
+
       <View style={styles.sceneContainer}>
         <ChatbotScene />
       </View>
-
-      {/* Modal for user input */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>請告訴我們你是如何達成的？</Text>
-            <TextInput
-              style={styles.input}
-              onChangeText={setUserInput}
-              value={userInput}
-              placeholder="輸入文字"
-            />
-            <Button title="提交" onPress={handleSubmit} />
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -201,17 +258,34 @@ const styles = StyleSheet.create({
     padding: 5,
     fontWeight: 'bold',
   },
+  noMissionContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FCF7E8',
+    padding: 15,
+    borderRadius: 15,
+    marginVertical: 7,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.35,
+    shadowRadius: 2.5,
+  },
   noMissionText: {
     fontSize: 16,
     color: '#80351E',
     textAlign: 'center',
     padding: 5,
+    fontWeight: 'bold',
   },
   chatContainer: {
     flex: 1,
     paddingHorizontal: 10,
   },
-  messageContainer: {
+  userMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: 'white',
+    borderRadius: 14,
+    borderBottomRightRadius: 0.5,
     marginVertical: 5,
     marginHorizontal: 10,
     padding: 10,
@@ -221,36 +295,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#E3B7AA',
     borderRadius: 14,
     borderBottomLeftRadius: 0.5,
+    marginVertical: 5,
+    marginHorizontal: 10,
+    padding: 10,
   },
-  modalContainer: {
-    flex: 1,
+  buttonContainer: {
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    marginTop: 20,
   },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
+  completionButton: {
+    backgroundColor: '#4C241D',
     borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    padding: 10,
+    marginHorizontal: 20,
   },
-  modalText: {
-    marginBottom: 15,
+  buttonText: {
+    color: 'white',
     textAlign: 'center',
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 15,
-    width: 200,
-    paddingHorizontal: 10,
+    fontSize: 16,
   },
 });
 

@@ -17,7 +17,7 @@ import Sound from 'react-native-sound';
 import AnimalScene from '../scenes/animalScene';
 import ChatbotScene from '../scenes/chatbotScene';
 
-const ComicScreen = ({navigation}) => {
+const ComicScreen = ({navigation, route}) => {
   const [comics, setComics] = useState([]);
   const [selectedComic, setSelectedComic] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -25,6 +25,15 @@ const ComicScreen = ({navigation}) => {
   const [bgmSound, setBgmSound] = useState(null);
   const [audioQueue, setAudioQueue] = useState([]);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
+  const [caption, setCaption] = useState(''); // Add state for caption
+  const [description, setDescription] = useState(''); // Add state for description
+  const [narration, setNarration] = useState(''); // Add state for narration
+  const [generatingComic, setGeneratingComic] = useState(false); // Track comic generation
+  const [error, setError] = useState(null);
+
+
+
+  const API_URL = 'http://172.20.10.3:8080';
 
   useEffect(() => {
     const loadComics = async () => {
@@ -132,7 +141,7 @@ const ComicScreen = ({navigation}) => {
     </TouchableOpacity>
   );
 
-  const saveComic = async comicData => {
+  const saveComic = async (comicData) => {
     try {
       const updatedComics = [...comics, comicData];
       await AsyncStorage.setItem('comics', JSON.stringify(updatedComics));
@@ -142,76 +151,132 @@ const ComicScreen = ({navigation}) => {
     }
   };
 
+  useEffect(() => {
+    if (route.params?.userInput) {
+      fetchComic();
+    }
+  }, [route.params?.userInput]);
+
+  const fetchComic = async () => {
+    try {
+      // Retrieve the user token from AsyncStorage
+      const userToken = await AsyncStorage.getItem('userToken');
+  
+      // Ensure userToken exists before making the request
+      if (!userToken) {
+        throw new Error('User is not authenticated');
+      }
+  
+      setLoading(true);
+  
+      // Make the API request to fetch the comic
+      const response = await fetch(`${API_URL}/comic`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userToken}`, // Include the Bearer token
+        },
+      });
+  
+      // Handle non-OK responses
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage);
+      }
+  
+      // Parse the response
+      const data = await response.json();
+  
+      // Save the comic data
+      saveComic(data);
+    } catch (error) {
+      // Handle errors
+      setError(error.message);
+      Alert.alert('Error', `Failed to fetch comic: ${error.message}`);
+    } finally {
+      // Stop the loading spinner
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Gallery</Text>
-      <FlatList
-        data={comics}
-        renderItem={renderComicCover}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={2}
-        contentContainerStyle={styles.grid}
-      />
-      <Button
-        title="Add Comic"
-        onPress={() => {
-          const jsonData = {
-            bgm: 'https://wellnestbucket.s3.ap-southeast-2.amazonaws.com/cozy_bgm.mp3',
-            audio: [
-              'https://wellnestbucket.s3.amazonaws.com/voice/20240916/n_1_1.mp3',
-              // Add more audio URLs
-            ],
-            comic: [
-              'https://wellnestbucket.s3.amazonaws.com/comic_images/20240916/comic_0.webp',
-              // Add more comic URLs
-            ],
-          };
-          saveComic(jsonData);
-        }}
-      />
-
-      {/* Loading Modal */}
-      <Modal
-        animationType="none"
-        transparent={true}
-        visible={loading}
-        onRequestClose={() => setLoading(false)}>
-        <View style={styles.loadingContainer}>
+    <Text style={styles.title}>Gallery</Text>
+    <FlatList
+      data={generatingComic ? [{ comic: ['loading_placeholder_url'] }] : comics} // Display placeholder if generating
+      renderItem={generatingComic ? () => (
+        <View style={styles.loadingComicContainer}>
           <ActivityIndicator size="large" color="#80351E" />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingComicText}>Generating Comic...</Text>
         </View>
+      ) : renderComicCover}
+      keyExtractor={(item, index) => index.toString()}
+      numColumns={2}
+      contentContainerStyle={styles.grid}
+    />
+      {/* Fetch Comic Button */}
+      <Button title="Fetch Comic" onPress={fetchComic} />
+
+
+    {/* Loading Modal */}
+    <Modal
+      animationType="none"
+      transparent={true}
+      visible={loading}
+      onRequestClose={() => setLoading(false)}
+    >
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#80351E" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    </Modal>
+
+    {/* Content Modal */}
+    {selectedComic && (
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={handleModalClose}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <Button title="Close" onPress={handleModalClose} />
+
+          <FlatList
+            data={selectedComic.comic}
+            renderItem={({ item }) => (
+              <Image
+                source={{ uri: item }}
+                style={styles.image}
+                resizeMode="contain"
+              />
+            )}
+            keyExtractor={(item, index) => index.toString()}
+            numColumns={2}
+            contentContainerStyle={styles.grid}
+          />
+
+          {/* Display caption, description, and narration */}
+          <View style={styles.textContainer}>
+            <Text style={styles.textTitle}>Caption:</Text>
+            <Text style={styles.textContent}>{caption}</Text>
+
+            <Text style={styles.textTitle}>Description:</Text>
+            <Text style={styles.textContent}>{description}</Text>
+
+            <Text style={styles.textTitle}>Narration:</Text>
+            <Text style={styles.textContent}>{narration}</Text>
+          </View>
+
+          <View style={styles.sceneContainer}>
+            <ChatbotScene />
+          </View>
+        </SafeAreaView>
       </Modal>
-
-      {/* Content Modal */}
-      {selectedComic && (
-        <Modal
-          animationType="slide"
-          transparent={false}
-          visible={modalVisible}
-          onRequestClose={handleModalClose}>
-          <SafeAreaView style={styles.modalContainer}>
-            <Button title="Close" onPress={handleModalClose} />
-
-            <FlatList
-              data={selectedComic.comic}
-              renderItem={({item}) => (
-                <Image
-                  source={{uri: item}}
-                  style={styles.image}
-                  resizeMode="contain"
-                />
-              )}
-              keyExtractor={(item, index) => index.toString()}
-              numColumns={2}
-              contentContainerStyle={styles.grid}
-            />
-            <View style={styles.sceneContainer}>
-              <ChatbotScene />
-            </View>
-          </SafeAreaView>
-        </Modal>
-      )}
-    </SafeAreaView>
+    )}
+     {/* Error Display */}
+     {error && <Text style={styles.errorText}>{error}</Text>}
+  </SafeAreaView>
   );
 };
 
@@ -262,6 +327,31 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 18,
     color: '#fff',
+  },
+  textContainer: {
+    padding: 20,
+  },
+  textTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 10,
+  },
+  textContent: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  loadingComicContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 150,
+    height: 150,
+    margin: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+  },
+  loadingComicText: {
+    marginTop: 10,
+    color: '#80351E',
   },
 });
 

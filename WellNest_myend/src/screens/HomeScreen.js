@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState, useEffect, useContext , useRef} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -7,6 +7,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  Button
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../components/AuthContext';
@@ -18,7 +24,7 @@ import TopBar from '../components/TopBar';
 import AnimalScene from '../scenes/animalScene';
 import ChatbotScene from '../scenes/chatbotScene';
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = ({navigation, route}) => {
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [currentAiMessage, setCurrentAiMessage] = useState('');
@@ -29,6 +35,44 @@ const HomeScreen = ({navigation}) => {
   const {setIsUserLoggedIn} = authContext;
   const [audioQueue, setAudioQueue] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const scrollViewRef = useRef(); // 添加 ScrollView 的引用
+  const [userInput, setUserInput] = useState('');
+
+
+   // 初始化判斷是否從任務頁面進入
+   useEffect(() => {
+    if (route.params?.generateComic !== undefined) {
+      // 確認 route 是從 MissionsScreen 傳遞過來的
+      if (route.params.generateComic) {
+        // 使用者選擇了生成漫畫
+        setMessages(prevMessages => [
+          ...prevMessages,
+          { sender: 'ai', text: '快跟我分享做這個任務的過程吧！' }
+        ]);
+      } 
+    } else {
+      // 如果沒有 route 參數，顯示錯誤提示或做其他處理
+      console.log('未從任務頁面進入');
+    }
+  }, [route.params?.generateComic]);
+
+  const handleSubmit = () => {
+    console.log('User input:', userInput);
+    setUserInput('');
+    // Navigate to ComicScreen with userInput as a parameter
+    navigation.navigate('漫畫', { userInput });
+  };
+
+
+
+  // 當 messages 狀態發生變化時，滾動到最底部
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
+
 
   useEffect(() => {
     const initializeChat = async () => {
@@ -65,7 +109,7 @@ const HomeScreen = ({navigation}) => {
 
   const createChat = async token => {
     try {
-      const response = await fetch('http://192.168.2.1:8080/chat/create', {
+      const response = await fetch('http://172.20.10.3:8080/chat/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +166,7 @@ const HomeScreen = ({navigation}) => {
     ]);
     setInputMessage('');
 
-    const url = `http://192.168.2.1:8080/chat/message?user=${userId}&prompt=${encodeURIComponent(
+    const url = `http://172.20.10.3:8080/chat/message?user=${userId}&prompt=${encodeURIComponent(
       inputMessage,
     )}`;
     let eventSource = new EventSource(url);
@@ -183,7 +227,7 @@ const HomeScreen = ({navigation}) => {
 
   const storeMessage = async message => {
     try {
-      const response = await fetch('http://192.168.2.1:8080/message/create', {
+      const response = await fetch('http://172.20.10.3:8080/message/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,7 +251,7 @@ const HomeScreen = ({navigation}) => {
 
   const finishChat = async () => {
     try {
-      const response = await fetch('http://192.168.2.1:8080/chat/finish', {
+      const response = await fetch('http://172.20.10.3:8080/chat/finish', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,8 +262,9 @@ const HomeScreen = ({navigation}) => {
 
       if (response.ok) {
         console.log('Chat finished successfully');
-        setShowFinishButton(false); // Hide finish button after finishing chat
+        setShowFinishButton(false); // 隱藏結束按鈕
         await AsyncStorage.removeItem('chatCreated'); // Reset chat creation flag
+        setModalVisible(true); // 顯示 Modal
       } else {
         console.error('Failed to finish chat');
       }
@@ -228,53 +273,97 @@ const HomeScreen = ({navigation}) => {
     }
   };
 
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('userToken');
-    await AsyncStorage.removeItem('user_id');
-    setIsUserLoggedIn(false);
+  const navigateToMissions = () => {
+    setModalVisible(false); // 關閉 Modal
+    navigation.navigate('任務', {autoFetch: true}); // 導航到任務畫面，並傳遞參數
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
-      <TopBar navigation={navigation} />
-      <ScrollView style={styles.chatContainer}>
-        {messages.map((msg, index) => (
-          <View
-            key={index}
-            style={
-              msg.sender === 'user' ? styles.userMessage : styles.aiMessage
-            }>
-            <Text>{msg.text}</Text>
-          </View>
-        ))}
-        {currentAiMessage ? (
-          <Text style={styles.aiMessage}>{currentAiMessage}</Text>
-        ) : null}
-        {showFinishButton && (
-          <TouchableOpacity style={styles.finishButton} onPress={finishChat}>
-            <Text style={styles.finishButtonText}>Finish Chat</Text>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : null}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 3 : 0} // Offset for iOS to avoid navbar covering
+      >
+        <TopBar navigation={navigation} />
+        <ScrollView 
+          style={styles.chatContainer}
+          ref={scrollViewRef}>
+          {messages.map((msg, index) => (
+            <View
+              key={index}
+              style={
+                msg.sender === 'user' ? styles.userMessage : styles.aiMessage
+              }>
+              <Text>{msg.text}</Text>
+            </View>
+          ))}
+          {currentAiMessage ? (
+            <Text style={styles.aiMessage}>{currentAiMessage}</Text>
+          ) : null}
+           {route.params?.generateComic ? (
+            // 如果 route.params.generateComic 為 true 顯示 "生成漫畫" 按鈕
+            <TouchableOpacity style={styles.finishButton} onPress={handleSubmit}>
+              <Text style={styles.finishButtonText}>生成漫畫</Text>
+            </TouchableOpacity>
+          ) : (
+            // 如果 route.params.generateComic 為 false，則顯示 "下次再聊" 按鈕
+            <View>
+              {showFinishButton && (
+                <TouchableOpacity style={styles.finishButton} onPress={finishChat}>
+                  <Text style={styles.finishButtonText}>下次再聊</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+          
+        </ScrollView>
+
+        <View style={styles.sceneContainer}>
+          <ChatbotScene />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={inputMessage}
+            onChangeText={setInputMessage}
+            placeholder="輸入文字..."
+          />
+          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+            <Icon name="send" size={30} color="#4C241D" />
           </TouchableOpacity>
-        )}
-      </ScrollView>
-
-      <View style={styles.sceneContainer}>
-        <ChatbotScene />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={inputMessage}
-          onChangeText={setInputMessage}
-          placeholder="Type your message..."
-        />
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-          <Icon name="send" size={30} color="#4C241D" />
-        </TouchableOpacity>
-      </View>
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Log Out</Text>
-      </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+      {/* Modal 彈窗 */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Image
+              source={require('../assets/material/13.png')} // 使用 require 加載本地圖片
+              style={styles.modalImage}
+            />
+             <Text style={styles.modalText}>看看適合你的活動吧~</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.yesmodalButton}
+                onPress={navigateToMissions}>
+                <Text style={styles.yesmodalButtonText}>好啊</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.nomodalButton}
+                onPress={() => setModalVisible(false)}>
+                <Text style={styles.nomodalButtonText}>不用了</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -293,11 +382,12 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#E3B7AA',
+    backgroundColor: 'white',
     borderRadius: 14,
     borderBottomRightRadius: 0.5,
     marginVertical: 5,
-    marginHorizontal: 10,
+    marginRight:10,
+    marginLeft:20,
     padding: 10,
   },
   aiMessage: {
@@ -306,7 +396,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderBottomLeftRadius: 0.5,
     marginVertical: 5,
-    marginHorizontal: 10,
+    marginRight:20,
+    marginLeft:10,
     padding: 10,
   },
   inputContainer: {
@@ -328,6 +419,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   finishButton: {
+    width:100,
     backgroundColor: '#4C241D',
     borderRadius: 20,
     padding: 10,
@@ -348,6 +440,61 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalImage: {
+    width: 110,
+    height: 100,
+    marginBottom: 20,
+  },
+  modalView: {
+    margin:50,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+  },
+  modalText: {
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  yesmodalButton: {
+    width:100,
+    backgroundColor: '#4C241D',
+    borderWidth:1,
+    borderColor:'#4C241D',
+    padding: 10,
+    borderRadius: 30,
+    margin: 10,
+  },
+  yesmodalButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  nomodalButton: {
+    width:100,
+    backgroundColor: 'white',
+    borderWidth:1,
+    borderColor:'#4C241D',
+    padding: 10,
+    borderRadius: 30,
+    margin: 10,
+  },
+  nomodalButtonText: {
+    color: '#4C241D',
     textAlign: 'center',
     fontSize: 16,
   },

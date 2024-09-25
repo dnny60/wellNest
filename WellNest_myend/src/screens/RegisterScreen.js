@@ -44,7 +44,7 @@ const RegisterScreen = ({navigation}) => {
 
     if (email && nickname && password && confirmPassword && gender && age) {
       axios
-        .post('http://192.168.2.1:8080/users/register', {
+        .post('http://172.20.10.3:8080/users/register', {
           email: email,
           password: password,
           name: nickname,
