@@ -16,6 +16,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Sound from 'react-native-sound';
 import AnimalScene from '../scenes/animalScene';
 import ChatbotScene from '../scenes/chatbotScene';
+import Icon from 'react-native-vector-icons/Ionicons';
+
 
 const ComicScreen = ({navigation, route}) => {
   const [comics, setComics] = useState([]);
@@ -201,13 +203,13 @@ const ComicScreen = ({navigation, route}) => {
 
   return (
     <SafeAreaView style={styles.container}>
-    <Text style={styles.title}>Gallery</Text>
+    <Text style={styles.title}>漫畫集</Text>
     <FlatList
       data={generatingComic ? [{ comic: ['loading_placeholder_url'] }] : comics} // Display placeholder if generating
       renderItem={generatingComic ? () => (
         <View style={styles.loadingComicContainer}>
           <ActivityIndicator size="large" color="#80351E" />
-          <Text style={styles.loadingComicText}>Generating Comic...</Text>
+          <Text style={styles.loadingComicText}>生成漫畫中...</Text>
         </View>
       ) : renderComicCover}
       keyExtractor={(item, index) => index.toString()}
@@ -227,7 +229,7 @@ const ComicScreen = ({navigation, route}) => {
     >
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#80351E" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>載入中...</Text>
       </View>
     </Modal>
 
@@ -240,7 +242,10 @@ const ComicScreen = ({navigation, route}) => {
         onRequestClose={handleModalClose}
       >
         <SafeAreaView style={styles.modalContainer}>
-          <Button title="Close" onPress={handleModalClose} />
+          
+          <TouchableOpacity style={styles.closeButton} onPress={ handleModalClose} >
+            <Icon name="close" size={30} color="#000"/>
+          </TouchableOpacity>
 
           <FlatList
             data={selectedComic.comic}
@@ -254,19 +259,8 @@ const ComicScreen = ({navigation, route}) => {
             keyExtractor={(item, index) => index.toString()}
             numColumns={2}
             contentContainerStyle={styles.grid}
+            columnWrapperStyle={styles.columnWrapper} 
           />
-
-          {/* Display caption, description, and narration */}
-          <View style={styles.textContainer}>
-            <Text style={styles.textTitle}>Caption:</Text>
-            <Text style={styles.textContent}>{caption}</Text>
-
-            <Text style={styles.textTitle}>Description:</Text>
-            <Text style={styles.textContent}>{description}</Text>
-
-            <Text style={styles.textTitle}>Narration:</Text>
-            <Text style={styles.textContent}>{narration}</Text>
-          </View>
 
           <View style={styles.sceneContainer}>
             <ChatbotScene />
@@ -311,11 +305,19 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: '#EDEBDC',
+
   },
   image: {
-    width: '48%',
-    height: 150,
+    width: '50%',
+    height: undefined, // 高度自适应
+    aspectRatio: 4 / 4, // 假设图片比例为 3:4
     margin: 1,
+    marginTop:15,
+  },
+  columnWrapper: {
+    justifyContent: 'space-between', // 控制两列之间的距离
+    marginBottom: 5, // 控制每行之间的垂直间距
+    paddingHorizontal:40,
   },
   loadingContainer: {
     flex: 1,
@@ -352,6 +354,12 @@ const styles = StyleSheet.create({
   loadingComicText: {
     marginTop: 10,
     color: '#80351E',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 7,
+    zIndex: 1,
   },
 });
 
