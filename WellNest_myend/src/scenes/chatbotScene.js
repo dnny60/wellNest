@@ -5,6 +5,7 @@ import  Eva  from '../components/Eva';
 import Loader from '../components/Loader';
 import Trigger from '../components/Trigger';
 import { Image, OrbitControls } from '@react-three/drei/native';
+import { Audio } from 'three';
 
 
 export default function ChatbotScene() {
@@ -14,8 +15,10 @@ export default function ChatbotScene() {
   return (
     
     <View style={{ 
-      flex: 1,
-     }}>
+      flex:0.5,
+      backgroundColor: 'rgba(0, 0, 0, 0)',
+    }}
+    >
         {loading && <Loader/>}
         <Canvas 
           gl={{ physicallyCorrectLights: true }} 

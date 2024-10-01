@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext , useRef} from 'react';
+import React, {useState, useEffect, useContext, useRef, useCallback } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  Button
+  Button,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../components/AuthContext';
@@ -23,6 +23,8 @@ import RNFS from 'react-native-fs';
 import TopBar from '../components/TopBar';
 import AnimalScene from '../scenes/animalScene';
 import ChatbotScene from '../scenes/chatbotScene';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const HomeScreen = ({navigation, route}) => {
   const [inputMessage, setInputMessage] = useState('');
@@ -30,84 +32,76 @@ const HomeScreen = ({navigation, route}) => {
   const [currentAiMessage, setCurrentAiMessage] = useState('');
   const [userId, setUserId] = useState('');
   const [userToken, setUserToken] = useState('');
-  const [showFinishButton, setShowFinishButton] = useState(false);
-  const authContext = useContext(AuthContext);
-  const {setIsUserLoggedIn} = authContext;
+  const [showMissionButton, setShowMissionButton] = useState(false);
   const [audioQueue, setAudioQueue] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const scrollViewRef = useRef(); // 添加 ScrollView 的引用
-  const [userInput, setUserInput] = useState('');
+  const scrollViewRef = useRef();
 
+  const { setIsUserLoggedIn } = useContext(AuthContext);
 
-   // 初始化判斷是否從任務頁面進入
-   useEffect(() => {
-    if (route.params?.generateComic !== undefined) {
-      // 確認 route 是從 MissionsScreen 傳遞過來的
-      if (route.params.generateComic) {
-        // 使用者選擇了生成漫畫
+  useFocusEffect(
+    useCallback(() => {
+      const initializeChat = async () => {
+        try {
+          const [storedUserId, storedUserToken] = await Promise.all([
+            AsyncStorage.getItem('user_id'),
+            AsyncStorage.getItem('userToken')
+          ]);
+
+          if (storedUserId && storedUserToken) {
+            setUserId(storedUserId);
+            setUserToken(storedUserToken);
+            await checkAndCreateChat(storedUserToken);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+        }
+      };
+
+      initializeChat();
+
+      if (route.params?.generateComic) {
         setMessages(prevMessages => [
           ...prevMessages,
-          { sender: 'ai', text: '快跟我分享做這個任務的過程吧！' }
+          { sender: 'ai', text: '快跟我分享！讓我來為你紀錄吧' },
         ]);
-      } 
-    } else {
-      // 如果沒有 route 參數，顯示錯誤提示或做其他處理
-      console.log('未從任務頁面進入');
-    }
-  }, [route.params?.generateComic]);
+      }
+    }, [route.params?.generateComic])
+  );
 
-  const handleSubmit = () => {
-    console.log('User input:', userInput);
-    setUserInput('');
-    // Navigate to ComicScreen with userInput as a parameter
-    navigation.navigate('漫畫', { userInput });
-  };
-
-
-
-  // 當 messages 狀態發生變化時，滾動到最底部
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
     }
   }, [messages]);
 
-
-  useEffect(() => {
-    const initializeChat = async () => {
-      try {
-        const storedUserId = await AsyncStorage.getItem('user_id');
-        const storedUserToken = await AsyncStorage.getItem('userToken');
-        const chatCreated = await AsyncStorage.getItem('chatCreated');
-
-        if (storedUserId && storedUserToken) {
-          setUserId(storedUserId);
-          setUserToken(storedUserToken);
-
-          // Create chat only if it hasn't been created yet
-          if (!chatCreated) {
-            await createChat(storedUserToken);
-            await AsyncStorage.setItem('chatCreated', 'true');
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch user data from AsyncStorage:', error);
-      }
-    };
-
-    initializeChat();
-  }, []);
-
-  useEffect(() => {
-    console.log('Updated messages: ', messages);
-  }, [messages]);
-
   useEffect(() => {
     playNextAudio();
   }, [audioQueue, isPlaying]);
 
-  const createChat = async token => {
+  const checkAndCreateChat = async (token) => {
+    if (route.params?.generateComic) {
+      console.log('跳過聊天創建，因為 generateComic 為 true');
+      return;
+    }
+
+    const chatCreated = await AsyncStorage.getItem('chatCreated');
+    const activeChat = await AsyncStorage.getItem('activeChat');
+
+    if (chatCreated === 'true' && activeChat === 'true') {
+      console.log('Active chat already exists.');
+      return;
+    }
+
+    //Otherwise, create a new chat
+    await createChat(token);
+    await AsyncStorage.setItem('chatCreated', 'true');
+    await AsyncStorage.setItem('activeChat', 'true');
+  };
+
+
+  const createChat = async (token) => {
     try {
       const response = await fetch('http://172.20.10.3:8080/chat/create', {
         method: 'POST',
@@ -115,44 +109,40 @@ const HomeScreen = ({navigation, route}) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({userId}),
+        body: JSON.stringify({ userId }),
       });
-      if (response.ok) {
-        console.log('Chat created successfully');
-      } else {
-        console.error('Failed to create chat');
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.message === 'Chat already exists') {
+          console.log('A chat already exists for this user.');
+        } else {
+          throw new Error(errorData.message || 'Unknown error');
+        }
       }
     } catch (error) {
       console.error('Error creating chat:', error);
+      alert(`Failed to create chat: ${error.message}`);
     }
   };
 
   const playNextAudio = () => {
-    // 只有当队列中有音频且当前没有音频正在播放时才继续
     if (audioQueue.length > 0 && !isPlaying) {
-      console.log('Playing next audio:', audioQueue[0]);
-      setIsPlaying(true); // 标记为正在播放
-      const nextAudioPath = audioQueue[0]; // 获取队列中的下一个音频
+      setIsPlaying(true);
+      const nextAudioPath = audioQueue[0];
 
-      const sound = new Sound(nextAudioPath, '', error => {
+      const sound = new Sound(nextAudioPath, '', (error) => {
         if (error) {
-          console.error('加载音频文件失败:', error);
-          // 出错时重置状态并尝试播放下一个音频
+          console.error('加載音頻文件失敗:', error);
           setIsPlaying(false);
           setAudioQueue(queue => queue.slice(1));
           return;
         }
 
-        sound.play(success => {
-          if (success) {
-            console.log('音频播放成功');
-          } else {
-            console.log('音频播放失败');
-          }
-          sound.release(); // 释放资源
-
-          setAudioQueue(queue => queue.slice(1)); // 移除已播放的音频
-          setIsPlaying(false); // 重置播放状态
+        sound.play((success) => {
+          sound.release();
+          setAudioQueue(queue => queue.slice(1));
+          setIsPlaying(false);
         });
       });
     }
@@ -214,7 +204,7 @@ const HomeScreen = ({navigation, route}) => {
         if (data.data.end) {
           eventSource.close();
           storeMessage(inputMessage);
-          setShowFinishButton(true); // Show finish button after chat ends
+          setShowMissionButton(true); // Show finish button after chat ends
         }
       }
 
@@ -225,7 +215,8 @@ const HomeScreen = ({navigation, route}) => {
     });
   };
 
-  const storeMessage = async message => {
+
+  const storeMessage = async (message) => {
     try {
       const response = await fetch('http://172.20.10.3:8080/message/create', {
         method: 'POST',
@@ -239,13 +230,13 @@ const HomeScreen = ({navigation, route}) => {
         }),
       });
 
-      if (response.ok) {
-        console.log('Message stored successfully');
-      } else {
-        console.error('Failed to store message');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
     } catch (error) {
       console.error('Error storing message:', error);
+      alert('An error occurred while storing the message. Please try again.');
     }
   };
 
@@ -257,27 +248,38 @@ const HomeScreen = ({navigation, route}) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${userToken}`,
         },
-        body: JSON.stringify({userId}),
+        body: JSON.stringify({ userId }),
       });
 
       if (response.ok) {
-        console.log('Chat finished successfully');
-        setShowFinishButton(false); // 隱藏結束按鈕
-        await AsyncStorage.removeItem('chatCreated'); // Reset chat creation flag
-        setModalVisible(true); // 顯示 Modal
+        await AsyncStorage.removeItem('activeChat');
       } else {
-        console.error('Failed to finish chat');
+        throw new Error('Failed to finish chat');
       }
     } catch (error) {
       console.error('Error finishing chat:', error);
+      alert('Failed to finish chat. Please try again.');
     }
   };
 
-  const navigateToMissions = () => {
-    setModalVisible(false); // 關閉 Modal
-    navigation.navigate('任務', {autoFetch: true}); // 導航到任務畫面，並傳遞參數
+  const hideMissionButton = () => {
+    setShowMissionButton(false);
+    setModalVisible(true);
   };
 
+  const navigateToMissions = () => {
+    setModalVisible(false);
+    navigation.navigate('任務', { autoFetch: true });
+  };
+
+  const handleComicGeneration = () => {
+    navigation.navigate('漫畫', { autoFetch: true });
+    AsyncStorage.removeItem('chatCreated');
+    AsyncStorage.removeItem('activeChat');
+    setInputMessage('');
+
+    finishChat();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -287,9 +289,7 @@ const HomeScreen = ({navigation, route}) => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 3 : 0} // Offset for iOS to avoid navbar covering
       >
         <TopBar navigation={navigation} />
-        <ScrollView 
-          style={styles.chatContainer}
-          ref={scrollViewRef}>
+        <ScrollView style={styles.chatContainer} ref={scrollViewRef}>
           {messages.map((msg, index) => (
             <View
               key={index}
@@ -302,26 +302,31 @@ const HomeScreen = ({navigation, route}) => {
           {currentAiMessage ? (
             <Text style={styles.aiMessage}>{currentAiMessage}</Text>
           ) : null}
-           {route.params?.generateComic ? (
-            // 如果 route.params.generateComic 為 true 顯示 "生成漫畫" 按鈕
-            <TouchableOpacity style={styles.finishButton} onPress={handleSubmit}>
-              <Text style={styles.finishButtonText}>生成漫畫</Text>
-            </TouchableOpacity>
-          ) : (
-            // 如果 route.params.generateComic 為 false，則顯示 "下次再聊" 按鈕
-            <View>
-              {showFinishButton && (
-                <TouchableOpacity style={styles.finishButton} onPress={finishChat}>
-                  <Text style={styles.finishButtonText}>下次再聊</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-          
         </ScrollView>
 
-        <View style={styles.sceneContainer}>
-          <ChatbotScene />
+        <View style={styles.fixedView}>
+          <View style={styles.sceneContainer}>
+            <ChatbotScene />
+            {route.params?.generateComic ? (
+              // 如果 route.params.generateComic 為 true 顯示 "生成漫畫" 按鈕
+              <TouchableOpacity
+                style={styles.comicButton}
+                onPress={handleComicGeneration}>
+                <Icon name="cloud" size={30} color="white" />
+              </TouchableOpacity>
+            ) : (
+              // 如果 route.params.generateComic 為 false，則顯示 "下次再聊" 按鈕
+              <View>
+                {showMissionButton && (
+                  <TouchableOpacity
+                    style={styles.missionButton}
+                    onPress={hideMissionButton}>
+                    <Icon name="gift" size={30} color="white" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
         </View>
 
         <View style={styles.inputContainer}>
@@ -329,7 +334,8 @@ const HomeScreen = ({navigation, route}) => {
             style={styles.input}
             value={inputMessage}
             onChangeText={setInputMessage}
-            placeholder="輸入文字..."
+            placeholder="輸入你的心情吧..."
+            placeholderTextColor="#4C241D"
           />
           <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
             <Icon name="send" size={30} color="#4C241D" />
@@ -348,7 +354,7 @@ const HomeScreen = ({navigation, route}) => {
               source={require('../assets/material/13.png')} // 使用 require 加載本地圖片
               style={styles.modalImage}
             />
-             <Text style={styles.modalText}>看看適合你的活動吧~</Text>
+            <Text style={styles.modalText}>看看適合你的活動吧~</Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.yesmodalButton}
@@ -377,27 +383,40 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 10,
   },
+  fixedView: {
+    position: 'absolute',
+    bottom: 50,
+    left: 0,
+    right: 0,
+    height: 150,
+    backgroundColor: 'rgba(0,0,0,0)',
+    zIndex: 2, // Ensures this view is on top of ScrollView
+  },
   sceneContainer: {
-    flex: 0.8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0)',
   },
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: 'white',
-    borderRadius: 14,
+    borderRadius: 20,
     borderBottomRightRadius: 0.5,
     marginVertical: 5,
-    marginRight:10,
-    marginLeft:20,
+    marginRight: 10,
+    marginLeft: 20,
     padding: 10,
   },
   aiMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#E3B7AA',
-    borderRadius: 14,
+    borderRadius: 20,
     borderBottomLeftRadius: 0.5,
     marginVertical: 5,
-    marginRight:20,
-    marginLeft:10,
+    marginRight: 20,
+    marginLeft: 10,
     padding: 10,
   },
   inputContainer: {
@@ -418,13 +437,20 @@ const styles = StyleSheet.create({
   sendButton: {
     marginLeft: 10,
   },
-  finishButton: {
-    width:100,
-    backgroundColor: '#4C241D',
-    borderRadius: 20,
+  comicButton: {
+    width: 'auto',
+    backgroundColor: '#E3B7AA',
+    borderRadius: 100,
     padding: 10,
     marginHorizontal: 10,
-    marginVertical: 10,
+    marginVertical: 20,
+  },
+  missionButton: {
+    width: 'auto',
+    backgroundColor: '#E3B7AA',
+    borderRadius: 100,
+    padding: 10,
+    margin: 20,
   },
   finishButtonText: {
     color: 'white',
@@ -455,7 +481,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalView: {
-    margin:50,
+    margin: 50,
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 35,
@@ -471,10 +497,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   yesmodalButton: {
-    width:100,
+    width: 100,
     backgroundColor: '#4C241D',
-    borderWidth:1,
-    borderColor:'#4C241D',
+    borderWidth: 1,
+    borderColor: '#4C241D',
     padding: 10,
     borderRadius: 30,
     margin: 10,
@@ -485,10 +511,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   nomodalButton: {
-    width:100,
+    width: 100,
     backgroundColor: 'white',
-    borderWidth:1,
-    borderColor:'#4C241D',
+    borderWidth: 1,
+    borderColor: '#4C241D',
     padding: 10,
     borderRadius: 30,
     margin: 10,

@@ -10,6 +10,7 @@ import SettingStack from './SettingStack';
 import QuestionnaireScreen from '../screens/QuestionnaireScreen';
 import QuestionnaireStack from './QuestionnaireStack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ComicCollectionScreen from '../screens/ComicCollectionScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -34,6 +35,15 @@ const AppStack = () => {
         options={{
           drawerIcon: ({color}) => (
             <Ionicons name="book" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="漫畫集"
+        component={ComicCollectionScreen}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="heart" size={22} color={color} />
           ),
         }}
       />

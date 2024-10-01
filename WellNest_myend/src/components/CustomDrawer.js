@@ -28,9 +28,13 @@ const CustomDrawer = props => {
   }, []);
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('userToken');
-    await AsyncStorage.removeItem('user_id');
-    setIsUserLoggedIn(false);
+    try {
+      await AsyncStorage.multiRemove(['chatCreated', 'activeChat', 'userToken', 'user_id']);
+      console.log('AsyncStorage cleared successfully');
+      setIsUserLoggedIn(false);
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
   };
 
   return (

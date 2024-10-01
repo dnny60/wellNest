@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: 'black',
-    fontSize: 48,
+    fontSize: 40,
     fontFamily: 'Rhodium Libre',
     fontWeight: '400',
   },

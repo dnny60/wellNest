@@ -29,6 +29,7 @@ const MissionsScreen = ({navigation, route}) => {
   const [selectedMission, setSelectedMission] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [showCompletionButtons, setShowCompletionButtons] = useState(false);
+  
 
   useEffect(() => {
     const initializeMission = async () => {
@@ -55,6 +56,7 @@ const MissionsScreen = ({navigation, route}) => {
 
   const fetchMissions = async () => {
     try {
+      console.log("User Token:", userToken); 
       const response = await fetch(`${API_URL}/mission`, {
         method: 'GET',
         headers: {
@@ -92,19 +94,45 @@ const MissionsScreen = ({navigation, route}) => {
       {cancelable: false},
     );
   };
+// 用于将选中的任务发送到后端
+const submitMissionToBackend = async (mission) => {
+  try {
+    const response = await fetch(`${API_URL}/mission/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userToken}`, // 使用用户的 token 授权
+      },
+      body: JSON.stringify({
+        mission: mission.content, // 将任务内容发送到后端
+      }),
+    });
 
-  const confirmMissionSelection = mission => {
-    // 確認選擇後將該任務設為選中的任務
-    setSelectedMission(mission);
-    const newMessage = `太好了，你選擇了[${mission.content}]！如果你完成了請隨時告訴我。`;
-    setChatMessages(prevMessages => [...prevMessages, {sender: 'ai', text: newMessage}]);
-    setShowCompletionButtons(true); // 顯示完成按鈕
-  };
+    if (!response.ok) {
+      throw new Error('Failed to submit mission to backend');
+    }
+
+    console.log('Mission submitted to backend successfully');
+  } catch (error) {
+    console.error('Error submitting mission to backend:', error);
+    Alert.alert('提交任務時出錯', '無法將任務提交到伺服器，請稍後再試。');
+  }
+};
+
+// 確認選擇任務後的處理邏輯
+const confirmMissionSelection = mission => {
+  // 確認選擇後將該任務設為選中的任務
+  setSelectedMission(mission);
+  const newMessage = `太好了，你選擇了[${mission.content}]！如果你完成了請隨時告訴我。`;
+  setChatMessages(prevMessages => [...prevMessages, { sender: 'ai', text: newMessage }]);
+  setShowCompletionButtons(true); // 顯示完成按鈕
+
+};
  
   const handleMissionCompletion = completed => {
     const userMessage = completed ? '完成了！' : '還沒有';
     const aiResponse = completed
-      ? '太棒了！我為你生成了新的漫畫，快來看看吧。'
+      ? '太棒了！有沒有發生什麼好玩的事。你願不願意跟我分享？'
       : '沒關係，繼續加油！如果完成了隨時告訴我。';
   
       setChatMessages(prevMessages => [
@@ -117,8 +145,8 @@ const MissionsScreen = ({navigation, route}) => {
       setTimeout(() => {
         // 顯示生成漫畫選項
         Alert.alert(
-          '生成漫畫',
-          '你想要生成漫畫嗎？',
+          '紀錄心情',
+          '幫你記錄現在的心情？',
           [
             {
               text: '否',

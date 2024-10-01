@@ -25,6 +25,7 @@ export default function InputField({
       {inputType === 'password' ? (
         <TextInput
           placeholder={label}
+          placeholderTextColor="gray" 
           keyboardType={keyboardType}
           style={{
             flex: 1,
@@ -37,6 +38,7 @@ export default function InputField({
       ) : (
         <TextInput
           placeholder={label}
+          placeholderTextColor="gray" 
           keyboardType={keyboardType}
           style={{
             flex: 1,
