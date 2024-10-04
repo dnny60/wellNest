@@ -251,11 +251,13 @@ const HomeScreen = ({navigation, route}) => {
         body: JSON.stringify({ userId }),
       });
 
-      if (response.ok) {
-        await AsyncStorage.removeItem('activeChat');
-      } else {
-        throw new Error('Failed to finish chat');
-      }
+      // if (response.ok) {
+      //   await AsyncStorage.removeItem('activeChat');
+      // } else {
+      //   throw new Error('Failed to finish chat');
+      // }
+      hideMissionButton();
+
     } catch (error) {
       console.error('Error finishing chat:', error);
       alert('Failed to finish chat. Please try again.');
@@ -278,7 +280,6 @@ const HomeScreen = ({navigation, route}) => {
     AsyncStorage.removeItem('activeChat');
     setInputMessage('');
 
-    finishChat();
   };
 
   return (
@@ -320,7 +321,7 @@ const HomeScreen = ({navigation, route}) => {
                 {showMissionButton && (
                   <TouchableOpacity
                     style={styles.missionButton}
-                    onPress={hideMissionButton}>
+                    onPress={finishChat}>
                     <Icon name="gift" size={30} color="white" />
                   </TouchableOpacity>
                 )}

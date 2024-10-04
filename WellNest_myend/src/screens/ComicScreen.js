@@ -15,6 +15,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Sound from 'react-native-sound';
 import Icon from 'react-native-vector-icons/Ionicons';
+import TopBar from '../components/TopBar';
 
 const ComicScreen = ({navigation, route}) => {
   const [comics, setComics] = useState(Array(10).fill(null)); // 初始設置為空數組
@@ -134,19 +135,19 @@ const ComicScreen = ({navigation, route}) => {
     const caption = selectedComic?.urlsByType?.comic?.[index]?.caption?.replace(/[\[\]]/g, '').replace(/^caption:/, '') || '';
     
     // Get dialogue if available
-    const dialogue = selectedComic?.dialogues
-      ? selectedComic.dialogues.find(d => parseInt(d.page, 10) === index + 1)?.content
-      : '';
-  
+    const dialogue = selectedComic?.dialogue
+    ? selectedComic.dialogue.find(d => parseInt(d.page, 10) === index + 1)?.content.replace(/\\n/g, '')
+    : '';
+
+
     return (
       <View style={styles.comicContainer}>
-        {dialogue && (
+       {dialogue && (
           <View style={styles.dialogueWrapper}>
             <Text style={styles.dialogueText}>{dialogue}</Text>
             <View style={styles.dialogueTail} />
           </View>
         )}
-        
         {/* Display comic image */}
         <Image
           source={{uri: item}}
@@ -235,6 +236,7 @@ const ComicScreen = ({navigation, route}) => {
       return (
         <View style={styles.coverContainer}>
           <ActivityIndicator size="large" color="#80351E" />
+          <Text style={styles.loadingText}>載入中...</Text>
         </View>
       );
     } else {
@@ -304,6 +306,7 @@ const ComicScreen = ({navigation, route}) => {
 
   return (
     <SafeAreaView style={styles.container}>
+
     <View style={styles.titleWrapper}>
         <Text style={styles.title}>心情日記</Text>
     </View>
@@ -317,7 +320,6 @@ const ComicScreen = ({navigation, route}) => {
         contentContainerStyle={styles.grid}
       />
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
 
       {selectedComic && (
         <Modal
@@ -339,13 +341,25 @@ const ComicScreen = ({navigation, route}) => {
               </View>
             ) : (
               <FlatList
-                ref={flatListRef}
-                data={selectedComic.urlsByType.comic.map(c => c.url ? c.url : null)}  // 提取URL
-                renderItem={renderComicImage}
-                keyExtractor={(item, index) => index.toString()}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-              />
+                  ref={flatListRef}
+                  data={selectedComic.urlsByType.comic.map(c => c.url ? c.url : null)}
+                  renderItem={renderComicImage}
+                  keyExtractor={(item, index) => index.toString()}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  getItemLayout={(data, index) => ({
+                    length: 400,  // 每個項目的固定寬度/高度
+                    offset: 400 * index,  // 根據索引計算每個項目的位置
+                    index,
+                  })}
+                  onScrollToIndexFailed={info => {
+                    // 這個函數可以處理滾動到不可見項目的失敗
+                    const wait = new Promise(resolve => setTimeout(resolve, 500));
+                    wait.then(() => {
+                      flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
+                    });
+                  }}
+                />
             )}
           </SafeAreaView>
         </Modal>
@@ -373,7 +387,7 @@ const styles = StyleSheet.create({
   },
   comicDate: {
     fontSize:10,
-    color: '#80351E',
+    color: '#E3B7AA',
     textAlign: 'center',
     padding:2,   
   },
@@ -385,8 +399,10 @@ const styles = StyleSheet.create({
     paddingBottom:5,
   },
   grid: {
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    backgroundColor:'#E3B7AA',
+    height:'200%'
     
   },
   coverContainer: {
@@ -433,11 +449,15 @@ const styles = StyleSheet.create({
   comicContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: 400, // 固定寬度以保持位置一致
+    height: 'auto', // 固定高度
+    position: 'relative', // 使用相對位置確保內容不會相互重疊
+
   },
   captionWrapper: {
     backgroundColor: '#EDEBDC',
     borderRadius: 0,
-    width: '50%',
+    width: '70%',
     height: 'auto',
     justifyContent: 'center',
     alignItems: 'center',
@@ -446,30 +466,43 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 1, height: 2},
     shadowOpacity: 0.5,
     shadowRadius: 3,
+    position: 'absolute', // 固定位置
+    bottom: 160, // 固定在容器的底部
+  
   },
   captionText: {
     textAlign: 'center',
     fontStyle: 'italic',
     fontSize: 16,
     color: '#444',
+    flexWrap: 'wrap',
   },
   dialogueWrapper: {
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 10,
-    margin: 10,
-    maxWidth: '80%',
-    position: 'relative',
-    borderWidth: 0,
-    borderColor: '#444',
+    flexShrink: 1,
+    flexDirection: 'column', 
     shadowColor: '#000',
-    shadowOffset: {width: 2, height: 2},
+    shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
+    zIndex: 20, 
+    position: 'absolute', 
+    top: 50,  
+    overflow: 'visible',  
+    width:'70%'
+  },
+  
+  dialogueText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+    flexWrap: 'wrap',  
   },
   dialogueTail: {
     position: 'absolute',
-    bottom: -30,
+    bottom: -20,
     left: 20,
     width: 0,
     height: 0,
@@ -479,18 +512,16 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: 'white',
-    hadowColor: '#000',
-    shadowOffset: {width: 1, height: 9},
+    shadowColor: '#000',
+    shadowOffset: { width: 1, height: 9 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
   },
-  dialogueText: {
-    fontSize: 16,
-    color: '#333',
-  },
   fullImage: {
-    width: 400,
-    height: '56%',
+    width: 400,    // 圖片填滿容器寬度
+    height: '70%',    // 固定高度為容器的70%
+    position: 'absolute', // 固定圖片位置，防止圖片移動
+    top: 60, // 保證圖片在容器頂部開始
     marginHorizontal: 0.5,
     marginTop: 50,
     marginBottom: -20,

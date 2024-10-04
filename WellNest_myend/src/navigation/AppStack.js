@@ -10,7 +10,7 @@ import SettingStack from './SettingStack';
 import QuestionnaireScreen from '../screens/QuestionnaireScreen';
 import QuestionnaireStack from './QuestionnaireStack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ComicCollectionScreen from '../screens/ComicCollectionScreen';
+import TherapyScreen from '../screens/TherapyScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -25,7 +25,7 @@ const AppStack = () => {
         component={HomeScreen}
         options={{
           drawerIcon: ({color}) => (
-            <Ionicons name="home-outline" size={22} color={color} />
+            <Ionicons name="home" size={22} color={color} />
           ),
         }}
       />
@@ -35,15 +35,6 @@ const AppStack = () => {
         options={{
           drawerIcon: ({color}) => (
             <Ionicons name="book" size={22} color={color} />
-          ),
-        }}
-      />
-      <Drawer.Screen
-        name="漫畫集"
-        component={ComicCollectionScreen}
-        options={{
-          drawerIcon: ({color}) => (
-            <Ionicons name="heart" size={22} color={color} />
           ),
         }}
       />
@@ -61,7 +52,16 @@ const AppStack = () => {
         component={QuestionnaireStack}
         options={{
           drawerIcon: ({color}) => (
-            <Ionicons name="clipboard-outline" size={22} color={color} />
+            <Ionicons name="clipboard" size={22} color={color} />
+          ),
+        }}
+      />
+       <Drawer.Screen
+        name="診所"
+        component={TherapyScreen}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="heart" size={22} color={color} />
           ),
         }}
       />
@@ -71,7 +71,7 @@ const AppStack = () => {
         component={SettingStack}
         options={{
           drawerIcon: ({color}) => (
-            <Ionicons name="settings-outline" size={22} color={color} />
+            <Ionicons name="settings" size={22} color={color} />
           ),
         }}
       />

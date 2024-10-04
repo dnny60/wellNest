@@ -54,6 +54,7 @@ const QuestionnaireStartScreen = ({navigation}) => {
             <Text
               style={{
                 lineHeight: 30,
+                color:'black',
               }}>
               簡式健康量表 (BSRS)，
               是一種能夠探尋心理狀態的篩檢工具。
@@ -61,6 +62,7 @@ const QuestionnaireStartScreen = ({navigation}) => {
             <Text
               style={{
                 lineHeight: 30,
+                color:'black',
               }}>
               此量表包含6個簡單的題目，
               它可以幫助我們具體了解自己目前的情緒困擾程度，
@@ -99,7 +101,8 @@ const styles = StyleSheet.create({
   title: {
     margin: 5,
     ...FONTS.h1,
-    fontWeight: 600,
+    fontWeight: '600',
+    color:'#87988C'
   },
   wrapper:{
     flex: 1,
@@ -108,7 +111,7 @@ const styles = StyleSheet.create({
     marginRight: 35,
     padding: 35,
     borderRadius: 35,
-    backgroundColor: '#EFD19A',
+    backgroundColor: '#C7D9CC',
   },
   text: {
     color: 'white',
@@ -127,7 +130,7 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   button: {
-    backgroundColor: 'black',
+    backgroundColor: '#87988C',
     width: 110,
     height: 40,
     margin: 40,

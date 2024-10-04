@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     padding: 35,
     borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
-    backgroundColor: '#EFD19A',
+    backgroundColor:'#A9CAB2',
   },
   image: {
     flex: 1,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   nextButton: {
-    backgroundColor: 'black',
+    backgroundColor: '#87988C',
     width: 100,
     height: 40,
     margin: 10,

@@ -56,7 +56,12 @@ const MissionsScreen = ({navigation, route}) => {
 
   const fetchMissions = async () => {
     try {
+      if (!userToken) {
+        throw new Error('User token is missing or invalid');
+      }
+  
       console.log("User Token:", userToken); 
+  
       const response = await fetch(`${API_URL}/mission`, {
         method: 'GET',
         headers: {
@@ -64,15 +69,16 @@ const MissionsScreen = ({navigation, route}) => {
           Authorization: `Bearer ${userToken}`, // Include the Bearer token
         },
       });
-
+  
       if (!response.ok) {
-        throw new Error('Failed to fetch missions');
+        const errorText = await response.text(); // 獲取錯誤詳情
+        throw new Error(`Failed to fetch missions: ${response.status} - ${errorText}`);
       }
-
+  
       const data = await response.json();
       setMissions(data);
     } catch (error) {
-      console.error('Error fetching missions:', error);
+      console.error('Error fetching missions:', error.message || error);
     }
   };
   const handleMissionPress = mission => {
@@ -123,7 +129,7 @@ const submitMissionToBackend = async (mission) => {
 const confirmMissionSelection = mission => {
   // 確認選擇後將該任務設為選中的任務
   setSelectedMission(mission);
-  const newMessage = `太好了，你選擇了[${mission.content}]！如果你完成了請隨時告訴我。`;
+  const newMessage = `太好了，你選擇了${mission.content}！如果你完成了請隨時告訴我。`;
   setChatMessages(prevMessages => [...prevMessages, { sender: 'ai', text: newMessage }]);
   setShowCompletionButtons(true); // 顯示完成按鈕
 
@@ -152,7 +158,7 @@ const confirmMissionSelection = mission => {
               text: '否',
               onPress: () => {
                 // 回傳 "沒問題的呦～ 下次再見！"
-                setMessages(prevMessages => [
+                userMessage(prevMessages => [
                   ...prevMessages,
                   { sender: 'ai', text: '沒問題的呦～ 下次再見！' }
                 ]);
@@ -176,14 +182,7 @@ const confirmMissionSelection = mission => {
       <TopBar navigation={navigation} />
       
       <ScrollView style={styles.chatContainer}>
-        {/* Chat messages */}
-        {chatMessages.map((msg, index) => (
-          <View
-            key={index}
-            style={msg.sender === 'user' ? styles.userMessage : styles.aiMessage}>
-            <Text>{msg.text}</Text>
-          </View>
-        ))}
+        
 
      {/* 任務列表 */}
     <View style={styles.missionsContainer}>
@@ -246,6 +245,14 @@ const confirmMissionSelection = mission => {
           </View>
         )}
       </ScrollView>
+      {/* Chat messages */}
+      {chatMessages.map((msg, index) => (
+          <View
+            key={index}
+            style={msg.sender === 'user' ? styles.userMessage : styles.aiMessage}>
+            <Text>{msg.text}</Text>
+          </View>
+        ))}
 
       <View style={styles.sceneContainer}>
         <ChatbotScene />
@@ -260,7 +267,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDEBDC',
   },
   sceneContainer: {
-    flex: 0.8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0)',
   },
   missionsContainer: {
     justifyContent: 'center',
@@ -315,16 +326,16 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderBottomRightRadius: 0.5,
     marginVertical: 5,
-    marginHorizontal: 10,
+    marginHorizontal: 50,
     padding: 10,
   },
   aiMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#E3B7AA',
-    borderRadius: 14,
+    borderRadius: 20,
     borderBottomLeftRadius: 0.5,
     marginVertical: 5,
-    marginHorizontal: 10,
+    marginHorizontal: 50,
     padding: 10,
   },
   buttonContainer: {

@@ -28,13 +28,13 @@ const ResultScreen = ({route, navigation}) => {
         </Text>
       );
     } else if (totalScore <= 5) {
-      return '一般正常範圍';
+      return <Text style={styles.resultInterpretation}>一般正常範圍</Text>;
     } else if (totalScore <= 9) {
-      return '輕度情緒困擾：建議找親友談談，抒發情緒';
+      return <Text style={styles.resultInterpretation}>輕度情緒困擾：建議找親友談談，抒發情緒</Text>;
     } else if (totalScore <= 14) {
-      return '中度情緒困擾：建議尋求心理衛生或精神醫療專業諮詢';
+      return <Text style={styles.resultInterpretation}>中度情緒困擾：建議尋求心理衛生或精神醫療專業諮詢</Text>;
     } else {
-      return '重度情緒困擾：建議尋求精神醫療專業諮詢';
+      return <Text style={styles.resultInterpretation}>重度情緒困擾：建議尋求精神醫療專業諮詢</Text>;
     }
   };
 
@@ -53,7 +53,9 @@ const ResultScreen = ({route, navigation}) => {
             </View>
           ))}
           <Text style={styles.resultTotal}>總分: {totalScore}</Text>
-          <View style={styles.wrapper}>{interpretation}</View>
+          <View style={styles.wrapper}>
+            {interpretation}
+          </View>
         </ScrollView>
         <TouchableOpacity style={styles.button} onPress={handleHomePress}>
           <Text style={styles.buttonText}>返回主頁</Text>
@@ -96,15 +98,16 @@ const styles = StyleSheet.create({
   },
   resultAnswer: {
     fontSize: 16,
-    color: '#80351E',
+    color: '#87988C',
     fontWeight: 'bold',
     textAlign: 'right',
   },
   resultTotal: {
-    fontSize: 25,
+    fontSize: 20,
     fontWeight: 'bold',
     marginTop: 16,
     textAlign: 'center',
+    marginBottom:10,
   },
   wrapper: {
     backgroundColor: '#FDD3D3',
@@ -114,24 +117,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   highlightText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#FF0000', // 高亮顏色
-    fontWeight: 'bold', // 選擇加粗顯示
+    color: '#E57D6A', 
+    fontWeight: 'bold', 
   },
   resultInterpretation: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '400',
     margin: 10,
     color: 'black',
   },
   button: {
     height: 48,
     width: 143,
-    backgroundColor: 'black',
+    backgroundColor: '#87988C',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
     marginTop: 16,
     justifyContent: 'center',
   },
