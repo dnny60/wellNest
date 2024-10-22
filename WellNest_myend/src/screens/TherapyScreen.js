@@ -65,14 +65,14 @@ const TherapyScreen = ({ navigation }) => {
       <View style={styles.clinicItem}>
         <View style={styles.buttonWrapper}>
             <Text style={styles.clinicName}>{item.name}</Text>
-            <TouchableOpacity style={styles.appointmentButton} onPress={() => handleAppointment(item)}>
+            {/* <TouchableOpacity style={styles.appointmentButton} onPress={() => handleAppointment(item)}>
                 <Icon name="checkmark-circle-outline" size={22} color={'white'} />
                 <Text style={styles.buttonText}>預約</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
         </View>
             <Icon name="location-outline" size={22}  style={styles.clinicDetails}>  {item.phone}</Icon>
-            <Icon name="call-outline" size={22} color={'red'} style={styles.clinicDetails}>  {item.location}</Icon>
-            <Icon name="walk-outline" size={22} color={'red'} style={styles.clinicDetails}>  {item.distance}</Icon>
+            <Icon name="call-outline" size={22} style={styles.clinicDetails}>  {item.location}</Icon>
+            <Icon name="walk-outline" size={22} style={styles.clinicDetails}>  {item.distance}</Icon>
       
       </View>
     );

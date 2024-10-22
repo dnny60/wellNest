@@ -21,7 +21,7 @@ const AppStack = () => {
       drawerContent={props => <CustomDrawer {...props} />}
       screenOptions={{headerShown: false}}>
       <Drawer.Screen
-        name="主頁"
+        name="聊天室"
         component={HomeScreen}
         options={{
           drawerIcon: ({color}) => (
@@ -30,7 +30,7 @@ const AppStack = () => {
         }}
       />
       <Drawer.Screen
-        name="漫畫"
+        name="心情日記"
         component={ComicScreen}
         options={{
           drawerIcon: ({color}) => (

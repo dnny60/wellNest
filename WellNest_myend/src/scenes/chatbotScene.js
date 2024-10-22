@@ -2,6 +2,7 @@ import React, { Suspense,useState,useControls } from 'react';
 import { View, Text } from 'react-native';
 import { Canvas } from '@react-three/fiber/native';
 import  Eva  from '../components/Eva';
+import Chick from '../components/Chick';
 import Loader from '../components/Loader';
 import Trigger from '../components/Trigger';
 import { Image, OrbitControls } from '@react-three/drei/native';
@@ -22,7 +23,7 @@ export default function ChatbotScene() {
         {loading && <Loader/>}
         <Canvas 
           gl={{ physicallyCorrectLights: true }} 
-          camera={{ position: [-6, 0, 16], fov: 36 }}  
+          camera={{ position: [0, 10, 16], fov: 36 }}  
           onCreated={(state) => { 
             const _gl = state.gl.getContext();
             const pixelStorei = _gl.pixelStorei.bind(_gl);
@@ -37,14 +38,14 @@ export default function ChatbotScene() {
             };
           }}
         >
-          <directionalLight position={[1, 0, 0]} args={["white", 0.8]} />
-          <directionalLight position={[-1, 0, 0]} args={["white", 3.4]} />
-          <directionalLight position={[0, 0, 1]} args={["white", 0.6]} />
+          <directionalLight position={[1, 0, 0]} args={["white", 2]} />
+          <directionalLight position={[-1, 0, 0]} args={["white", 2.4]} />
+          <directionalLight position={[0, 0, 1]} args={["white", 1.2]} />
           <directionalLight position={[0, 0, -1]} args={["white", 1]} />
-          <directionalLight position={[0, 1, 0]} args={["white", 3]} />
-          <directionalLight position={[0, -1, 0]} args={["white", 3]} />
+          <directionalLight position={[0, 1, 0]} args={["white", 4]} />
+          <directionalLight position={[0, -1, 0]} args={["white", 0]} />
           <Suspense fallback={<Trigger setLoading={setLoading} />}>
-            <Eva/>
+              <Chick rotation={[0,4.70, 0]} /> 
           </Suspense>
         </Canvas>
       </View>

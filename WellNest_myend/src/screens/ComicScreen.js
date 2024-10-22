@@ -132,7 +132,7 @@ const ComicScreen = ({navigation, route}) => {
 
   const renderComicImage = ({item, index}) => {
     // Get the caption and remove square brackets and any "caption:" prefix
-    const caption = selectedComic?.urlsByType?.comic?.[index]?.caption?.replace(/[\[\]]/g, '').replace(/^caption:/, '') || '';
+    const caption = selectedComic?.urlsByType?.comic?.[index]?.caption?.replace(/[\[\]]/g, '').replace(/^caption:/, '').trim() || '';;
     
     // Get dialogue if available
     const dialogue = selectedComic?.dialogue
@@ -181,7 +181,7 @@ const ComicScreen = ({navigation, route}) => {
     return sound;
   };
   
-  const playAudioQueue = (index = 0) => {
+  const playAudioQueue = (index = 1) => {
     if (selectedComic && selectedComic.urlsByType.voice && index < selectedComic.urlsByType.voice.length) {
       const sound = playSound(selectedComic.urlsByType.voice[index], () => {
         const nextIndex = index + 1;
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
   grid: {
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor:'#E3B7AA',
+    // backgroundColor:'#E3B7AA',
     height:'200%'
     
   },

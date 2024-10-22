@@ -9,7 +9,8 @@ import {
   Alert,
   Modal,
   TextInput,
-  Button
+  Button,
+  ActivityIndicator
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopBar from '../components/TopBar';
@@ -29,7 +30,23 @@ const MissionsScreen = ({navigation, route}) => {
   const [selectedMission, setSelectedMission] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [showCompletionButtons, setShowCompletionButtons] = useState(false);
+  const [loading, setLoading] = useState(null);
   
+  const checkToken = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      if (!userToken) {
+        throw new Error('User token is missing');
+      }
+    } catch (error) {
+      console.error('Failed to fetch user token:', error);
+    }
+  };
+  
+  useEffect(() => {
+    checkToken();
+  }, []);
+
 
   useEffect(() => {
     const initializeMission = async () => {
@@ -55,11 +72,12 @@ const MissionsScreen = ({navigation, route}) => {
   }, [route.params]);
 
   const fetchMissions = async () => {
-    try {
-      if (!userToken) {
-        throw new Error('User token is missing or invalid');
+     setLoading(true); 
+      try {
+        const userToken = await AsyncStorage.getItem('userToken');
+        if (!userToken) {
+          throw new Error('User token is missing or invalid');
       }
-  
       console.log("User Token:", userToken); 
   
       const response = await fetch(`${API_URL}/mission`, {
@@ -76,11 +94,17 @@ const MissionsScreen = ({navigation, route}) => {
       }
   
       const data = await response.json();
+      console.log('Missions data:', data);
       setMissions(data);
     } catch (error) {
       console.error('Error fetching missions:', error.message || error);
+    }finally {
+      setLoading(false); // 完成後結束loading
     }
   };
+
+
+
   const handleMissionPress = mission => {
     // 彈出 Alert 來確認是否選擇任務
     Alert.alert(
@@ -129,7 +153,7 @@ const submitMissionToBackend = async (mission) => {
 const confirmMissionSelection = mission => {
   // 確認選擇後將該任務設為選中的任務
   setSelectedMission(mission);
-  const newMessage = `太好了，你選擇了${mission.content}！如果你完成了請隨時告訴我。`;
+  const newMessage = `太好了，你選擇了<${mission.content}>！如果你完成了請隨時告訴我。`;
   setChatMessages(prevMessages => [...prevMessages, { sender: 'ai', text: newMessage }]);
   setShowCompletionButtons(true); // 顯示完成按鈕
 
@@ -166,7 +190,7 @@ const confirmMissionSelection = mission => {
             },
             {
               text: '是',
-              onPress: () => navigation.navigate('主頁', { generateComic: true }), // 導向主畫面且生成漫畫
+              onPress: () => navigation.navigate('聊天室', { generateComic: true }), // 導向主畫面且生成漫畫
             },
           ],
           { cancelable: false }
@@ -184,50 +208,58 @@ const confirmMissionSelection = mission => {
       <ScrollView style={styles.chatContainer}>
         
 
-     {/* 任務列表 */}
-    <View style={styles.missionsContainer}>
-      {selectedMission ? (
-        // 顯示已選擇的任務並禁用按鈕
-        <TouchableOpacity
-          style={[styles.missionContainer, styles.selectedMissionContainer]}
-          disabled={true} // 禁用按鈕
-        >
-          <Text style={[styles.missionText, styles.selectedMissionText]}>
-            {selectedMission.content}
-          </Text>
-        </TouchableOpacity>
+      {loading ? (
+      <View style={{justifyContent:'center', alignContent:'center', marginTop:50}} >
+        <ActivityIndicator  size="large" color="#4C241D" />
+      </View>
+         // 顯示loading指示器
       ) : (
-        // 顯示任務列表，未選擇時任務按鈕啟用
-        missions.length > 0 ? (
-          missions.map((mission, index) => (
+        <View style={styles.missionsContainer}>
+          {selectedMission ? 
+          (
+            // 顯示已選擇的任務並禁用按鈕
             <TouchableOpacity
-              key={index}
-              style={[
-                styles.missionContainer,
-                selectedMission?.id === mission.id && styles.selectedMissionContainer, // 已選任務樣式
-              ]}
-              onPress={() => handleMissionPress(mission)} // 選擇任務時的操作
-              disabled={selectedMission !== null} // 已選擇的任務禁用按鈕
+              style={[styles.missionContainer, styles.selectedMissionContainer]}
+              disabled={true} // 禁用按鈕
             >
-              <Text
-                style={[
-                  styles.missionText,
-                  selectedMission?.id === mission.id && styles.selectedMissionText, // 已選任務的文字樣式
-                ]}
-              >
-                {mission.content}
+              <Text style={[styles.missionText, styles.selectedMissionText]}>
+                {selectedMission.content}
               </Text>
             </TouchableOpacity>
-          ))
-        ) : (
-          // 沒有任務時顯示
-          <View style={styles.noMissionContainer}>
-            <Text style={styles.noMissionText}>這裡空空如也</Text>
-            <Text style={styles.noMissionText}>快來找我聊天領取任務吧～</Text>
-          </View>
-        )
+          ) : 
+          (
+            missions.length > 0 ? 
+            (
+              missions.map((mission, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.missionContainer,
+                    selectedMission?.id === mission.id && styles.selectedMissionContainer, // 已選任務樣式
+                  ]}
+                  onPress={() => handleMissionPress(mission)} // 選擇任務時的操作
+                  disabled={selectedMission !== null} // 已選擇的任務禁用按鈕
+                >
+                  <Text
+                    style={[
+                      styles.missionText,
+                      selectedMission?.id === mission.id && styles.selectedMissionText, // 已選任務的文字樣式
+                    ]}
+                  >
+                    {mission.content}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              // 沒有任務時顯示
+              <View style={styles.noMissionContainer}>
+                <Text style={styles.noMissionText}>這裡空空如也</Text>
+                <Text style={styles.noMissionText}>快來找我聊天領取任務吧～</Text>
+              </View>
+            )
+          )}
+        </View>
       )}
-    </View>
 
         {/* “完成了” 或 “還沒有”按鈕 */}
         {showCompletionButtons && (

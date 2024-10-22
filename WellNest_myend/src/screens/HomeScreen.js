@@ -1,4 +1,10 @@
-import React, {useState, useEffect, useContext, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -13,6 +19,7 @@ import {
   Platform,
   Image,
   Button,
+  Keyboard,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../components/AuthContext';
@@ -21,10 +28,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Sound from 'react-native-sound';
 import RNFS from 'react-native-fs';
 import TopBar from '../components/TopBar';
-import AnimalScene from '../scenes/animalScene';
 import ChatbotScene from '../scenes/chatbotScene';
-import { useFocusEffect } from '@react-navigation/native';
-
+import {useFocusEffect} from '@react-navigation/native';
 
 const HomeScreen = ({navigation, route}) => {
   const [inputMessage, setInputMessage] = useState('');
@@ -37,8 +42,10 @@ const HomeScreen = ({navigation, route}) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const scrollViewRef = useRef();
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [comicModalVisible, setComicModalVisible] = useState(false);  
 
-  const { setIsUserLoggedIn } = useContext(AuthContext);
+  const {setIsUserLoggedIn} = useContext(AuthContext);
 
   useFocusEffect(
     useCallback(() => {
@@ -46,7 +53,7 @@ const HomeScreen = ({navigation, route}) => {
         try {
           const [storedUserId, storedUserToken] = await Promise.all([
             AsyncStorage.getItem('user_id'),
-            AsyncStorage.getItem('userToken')
+            AsyncStorage.getItem('userToken'),
           ]);
 
           if (storedUserId && storedUserToken) {
@@ -64,15 +71,31 @@ const HomeScreen = ({navigation, route}) => {
       if (route.params?.generateComic) {
         setMessages(prevMessages => [
           ...prevMessages,
-          { sender: 'ai', text: '快跟我分享！讓我來為你紀錄吧' },
+          {sender: 'ai', text: '快跟我分享！讓我來為你紀錄吧'},
         ]);
       }
-    }, [route.params?.generateComic])
+    }, [route.params?.generateComic]),
   );
 
   useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setIsKeyboardVisible(true),
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setIsKeyboardVisible(false),
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     if (scrollViewRef.current) {
-      scrollViewRef.current.scrollToEnd({ animated: true });
+      scrollViewRef.current.scrollToEnd({animated: true});
     }
   }, [messages]);
 
@@ -80,7 +103,7 @@ const HomeScreen = ({navigation, route}) => {
     playNextAudio();
   }, [audioQueue, isPlaying]);
 
-  const checkAndCreateChat = async (token) => {
+  const checkAndCreateChat = async token => {
     if (route.params?.generateComic) {
       console.log('跳過聊天創建，因為 generateComic 為 true');
       return;
@@ -100,8 +123,7 @@ const HomeScreen = ({navigation, route}) => {
     await AsyncStorage.setItem('activeChat', 'true');
   };
 
-
-  const createChat = async (token) => {
+  const createChat = async token => {
     try {
       const response = await fetch('http://172.20.10.3:8080/chat/create', {
         method: 'POST',
@@ -109,9 +131,9 @@ const HomeScreen = ({navigation, route}) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({userId}),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         if (errorData.message === 'Chat already exists') {
@@ -131,7 +153,7 @@ const HomeScreen = ({navigation, route}) => {
       setIsPlaying(true);
       const nextAudioPath = audioQueue[0];
 
-      const sound = new Sound(nextAudioPath, '', (error) => {
+      const sound = new Sound(nextAudioPath, '', error => {
         if (error) {
           console.error('加載音頻文件失敗:', error);
           setIsPlaying(false);
@@ -139,7 +161,7 @@ const HomeScreen = ({navigation, route}) => {
           return;
         }
 
-        sound.play((success) => {
+        sound.play(success => {
           sound.release();
           setAudioQueue(queue => queue.slice(1));
           setIsPlaying(false);
@@ -215,8 +237,7 @@ const HomeScreen = ({navigation, route}) => {
     });
   };
 
-
-  const storeMessage = async (message) => {
+  const storeMessage = async message => {
     try {
       const response = await fetch('http://172.20.10.3:8080/message/create', {
         method: 'POST',
@@ -248,7 +269,7 @@ const HomeScreen = ({navigation, route}) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${userToken}`,
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({userId}),
       });
 
       // if (response.ok) {
@@ -257,7 +278,6 @@ const HomeScreen = ({navigation, route}) => {
       //   throw new Error('Failed to finish chat');
       // }
       hideMissionButton();
-
     } catch (error) {
       console.error('Error finishing chat:', error);
       alert('Failed to finish chat. Please try again.');
@@ -271,15 +291,24 @@ const HomeScreen = ({navigation, route}) => {
 
   const navigateToMissions = () => {
     setModalVisible(false);
-    navigation.navigate('任務', { autoFetch: true });
+    navigation.navigate('任務', {autoFetch: true});
   };
 
   const handleComicGeneration = () => {
-    navigation.navigate('漫畫', { autoFetch: true });
+    setComicModalVisible(true);  
+  };
+  
+  const closeComicModal = () => {
+    setComicModalVisible(false);  
+  };
+  
+
+  const handleNavigateToComic = () => {
+    setComicModalVisible(false);  
+    navigation.navigate('心情日記', {autoFetch: true});  
     AsyncStorage.removeItem('chatCreated');
     AsyncStorage.removeItem('activeChat');
     setInputMessage('');
-
   };
 
   return (
@@ -287,10 +316,15 @@ const HomeScreen = ({navigation, route}) => {
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : null}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 3 : 0} // Offset for iOS to avoid navbar covering
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 1 : 10} // Offset for iOS to avoid navbar covering
       >
         <TopBar navigation={navigation} />
-        <ScrollView style={styles.chatContainer} ref={scrollViewRef}>
+        <ScrollView
+          style={[
+            styles.chatContainer,
+            isKeyboardVisible && styles.chatContainerWithKeyboard,
+          ]}
+          ref={scrollViewRef}>
           {messages.map((msg, index) => (
             <View
               key={index}
@@ -364,9 +398,37 @@ const HomeScreen = ({navigation, route}) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.nomodalButton}
-                onPress={() => setModalVisible(false)}>
-                <Text style={styles.nomodalButtonText}>不用了</Text>
+                onPress={() => setModalVisible(true)}>
+                <Text style={styles.nomodalButtonText}>下次再來</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={comicModalVisible}  // 通过 comicModalVisible 状态控制第二个 Modal
+        onRequestClose={closeComicModal}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Image
+              source={require('../assets/material/5.png')}
+              style={styles.modalImage}
+            />
+            <Text style={styles.modalText}>幫你記錄下今天的心情？</Text>
+            <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={styles.yesmodalButton}
+              onPress={handleNavigateToComic}>  
+              <Text style={styles.yesmodalButtonText}>好啊</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.nomodalButton}
+              onPress={closeComicModal}>
+              <Text style={styles.nomodalButtonText}>下次再說</Text>
+            </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -383,6 +445,12 @@ const styles = StyleSheet.create({
   chatContainer: {
     flex: 1,
     paddingHorizontal: 10,
+    marginBottom: 130,
+  },
+  chatContainerWithKeyboard: {
+    flex: 1,
+    paddingHorizontal: 10,
+    marginBottom: 0, // 鍵盤顯示時移除 marginBottom
   },
   fixedView: {
     position: 'absolute',
@@ -477,7 +545,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalImage: {
-    width: 110,
+    width: 150,
     height: 100,
     marginBottom: 20,
   },

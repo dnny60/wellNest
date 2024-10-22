@@ -19,6 +19,8 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		AC2CE8B889A2981E796E1AE6 /* libPods-WellNest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 249C9F1AFF180DA81BCA3412 /* libPods-WellNest.a */; };
 		CA7205B85AB4C6C85BA44B0C /* libPods-WellNest-WellNestTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B29240969183136CB6FB638E /* libPods-WellNest-WellNestTests.a */; };
+		E64D7A452CB91E8E00E4B1ED /* cute_chick.glb in Resources */ = {isa = PBXBuildFile; fileRef = E64D7A432CB91E8E00E4B1ED /* cute_chick.glb */; };
+		E64D7A462CB91E8E00E4B1ED /* eve_wall-e__eva.glb in Resources */ = {isa = PBXBuildFile; fileRef = E64D7A442CB91E8E00E4B1ED /* eve_wall-e__eva.glb */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +54,8 @@
 		B29240969183136CB6FB638E /* libPods-WellNest-WellNestTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WellNest-WellNestTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B90802CE4DD2FB6963DFAFB5 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-WellNest/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		DE44AD9953FFEC577EC4BF60 /* Pods-WellNest.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WellNest.debug.xcconfig"; path = "Target Support Files/Pods-WellNest/Pods-WellNest.debug.xcconfig"; sourceTree = "<group>"; };
+		E64D7A432CB91E8E00E4B1ED /* cute_chick.glb */ = {isa = PBXFileReference; lastKnownFileType = file; name = cute_chick.glb; path = ../src/assets/models/cute_chick.glb; sourceTree = "<group>"; };
+		E64D7A442CB91E8E00E4B1ED /* eve_wall-e__eva.glb */ = {isa = PBXFileReference; lastKnownFileType = file; name = "eve_wall-e__eva.glb"; path = "../src/assets/models/eve_wall-e__eva.glb"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EF197F52DAD9D014E2F78E91 /* Pods-WellNest-WellNestTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WellNest-WellNestTests.release.xcconfig"; path = "Target Support Files/Pods-WellNest-WellNestTests/Pods-WellNest-WellNestTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -127,6 +131,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				E64D7A432CB91E8E00E4B1ED /* cute_chick.glb */,
+				E64D7A442CB91E8E00E4B1ED /* eve_wall-e__eva.glb */,
 				37BEE3182BC5BA7400D53B73 /* Magnetic.aac */,
 				37BEE3162BC5AC1C00D53B73 /* NAYEON POP! MV.mp3 */,
 				13B07FAE1A68108700A75B9A /* WellNest */,
@@ -282,6 +288,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E64D7A452CB91E8E00E4B1ED /* cute_chick.glb in Resources */,
+				E64D7A462CB91E8E00E4B1ED /* eve_wall-e__eva.glb in Resources */,
 				2D6684E02B668EF600D092F0 /* Fonts in Resources */,
 				37BEE3192BC5BA7400D53B73 /* Magnetic.aac in Resources */,
 				37BEE3172BC5AC1C00D53B73 /* NAYEON POP! MV.mp3 in Resources */,
@@ -295,7 +303,6 @@
 /* Begin PBXShellScriptBuildPhase section */
 		00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */ = {
 			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -406,7 +413,7 @@
 		};
 		954435A3CCBC74423B3A1189 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			files = (
 			);
 			inputFileListPaths = (

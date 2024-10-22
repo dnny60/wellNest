@@ -11,7 +11,7 @@ const ResultScreen = ({route, navigation}) => {
   const handleHomePress = () => {
     navigation.reset({
       index: 0,
-      routes: [{name: '主頁'}],
+      routes: [{name: '聊天室'}],
     });
   };
 
