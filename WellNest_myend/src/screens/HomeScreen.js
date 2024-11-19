@@ -201,9 +201,17 @@ const HomeScreen = ({navigation, route}) => {
               console.log('音频文件写入成功:', audioPath); // 打印文件路径
               setAudioQueue(currentQueue => [...currentQueue, audioPath]);
             })
-            .catch(err => console.error('写入音频文件失败:', err));
+            .catch(err => {
+              console.error('写入音频文件失败:', err);
+              // 跳过错误，不影响后续操作
+              return Promise.resolve(); // 确保继续后续的代码
+            });
         } else if (data.data.messageType === 'TEXT') {
           const messageText = data.data.message;
+
+          if (messageText.startsWith("A:")) {
+            messageText = messageText.slice(1).trim();
+          }
 
           if (messageText !== '#') {
             // 累积AI的消息到缓冲区

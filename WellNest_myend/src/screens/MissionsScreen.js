@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useRef,useState, useEffect, useContext} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -10,17 +10,24 @@ import {
   Modal,
   TextInput,
   Button,
-  ActivityIndicator
+  FlatList,
+  ActivityIndicator,
+  Image,
+  Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopBar from '../components/TopBar';
 import {AuthContext} from '../components/AuthContext';
 import ChatbotScene from '../scenes/chatbotScene';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const API_URL = 'http://172.20.10.3:8080'; // Update this to your actual backend URL
 
 const MissionsScreen = ({navigation, route}) => {
   const [missions, setMissions] = useState([]);
+  const pageIndicatorOpacity = useRef(new Animated.Value(1)).current;
+  const [currentPage, setCurrentPage] = useState(1);
+  const flatListRef = useRef(null);
   const [userId, setUserId] = useState('');
   const [userToken, setUserToken] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -31,6 +38,41 @@ const MissionsScreen = ({navigation, route}) => {
   const [chatMessages, setChatMessages] = useState([]);
   const [showCompletionButtons, setShowCompletionButtons] = useState(false);
   const [loading, setLoading] = useState(null);
+  const [selectedComic, setSelectedComic] = useState(null); // 用來儲存選擇的漫畫
+
+  // const missions = [
+  //   {
+  //     chatData: {
+  //       chatId: 48,
+  //       date: '2024-09-30T17:13:14.045+00:00',
+  //       dialogue: [],
+  //       title: '《突破重圍的曙光》',
+  //       urlsByType: { comic: [{ url: 'https://wellnestbucket.s3.amazonaws.com/comic_images/20241115/73/comic_2.webp' }, { url: 'https://wellnestbucket.s3.amazonaws.com/comic_images/20241115/73/comic_3.webp' }] },
+  //     },
+  //     content: '在住家附近散步5分鐘',
+  //     difficulty: 0,
+  //     emotions: [],
+  //     missionID: 1,
+  //   },
+  //   {
+  //     chatData: {
+  //       chatId: 50,
+  //       date: '2024-09-30T20:56:53.964+00:00',
+  //       dialogue: [],
+  //       title: '《暴風夜的溫暖》',
+  //       urlsByType: {
+  //         comic: [
+  //           { url: 'https://wellnestbucket.s3.amazonaws.com/comic_images/20241115/73/comic_6.webp' },
+  //           { url: 'https://wellnestbucket.s3.amazonaws.com/comic_images/20241115/73/comic_7.webp' },
+  //         ],
+  //       },
+  //     },
+  //     content: '繞著自家建築物走一圈',
+  //     difficulty: 0,
+  //     emotions: [],
+  //     missionID: 2,
+  //   },
+  // ];
   
   const checkToken = async () => {
     try {
@@ -95,12 +137,28 @@ const MissionsScreen = ({navigation, route}) => {
   
       const data = await response.json();
       console.log('Missions data:', data);
+      
       setMissions(data);
     } catch (error) {
       console.error('Error fetching missions:', error.message || error);
     }finally {
-      setLoading(false); // 完成後結束loading
+      setLoading(false); 
     }
+  };
+
+
+  const handleComicPress = (chatData) => {
+    setSelectedComic(chatData);
+    setModalVisible(true);
+  };
+
+
+  const filteredMission = missions.find((mission) => mission.chatData.chatId === 48); // 替换为测试用 chatId
+
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+    setSelectedComic(null);
   };
 
 
@@ -199,6 +257,52 @@ const confirmMissionSelection = mission => {
     }
   };
 
+  const handleScroll = event => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x; // 當前滾動的 X 偏移量
+    const pageIndex = Math.floor(contentOffsetX / 400) + 1; // 計算當前頁數（假設每頁寬度為 400）
+    setCurrentPage(pageIndex);
+  };
+
+  const renderComicImage = ({item, index}) => {
+    
+    const caption =
+      selectedComic?.urlsByType?.comic?.[index]?.caption
+        ?.replace(/[\[\]]/g, '')
+        .replace(/^caption:/, '')
+        .trim() || '';
+
+    // Get dialogue if available
+    const dialogue = selectedComic?.dialogue
+      ? selectedComic.dialogue
+          .find(d => parseInt(d.page, 10) === index + 1)
+          ?.content.replace(/\\n/g, '')
+      : '';
+
+    return (
+      <View style={styles.comicContainer}>
+        {dialogue && (
+          <View style={styles.dialogueWrapper}>
+            <Text style={styles.dialogueText}>{dialogue}</Text>
+            <View style={styles.dialogueTail} />
+          </View>
+        )}
+        {/* Display comic image */}
+        <Image
+          source={{uri: item}}
+          style={styles.fullImage}
+          resizeMode="contain"
+        />
+
+        {/* Display caption if available */}
+        {caption ? (
+          <View style={styles.captionWrapper}>
+            <Text style={styles.captionText}>{caption}</Text>
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+
 
 
   return (
@@ -231,24 +335,31 @@ const confirmMissionSelection = mission => {
             missions.length > 0 ? 
             (
               missions.map((mission, index) => (
+                <View key={index} style={styles.missionRow}>
                 <TouchableOpacity
-                  key={index}
                   style={[
                     styles.missionContainer,
-                    selectedMission?.id === mission.id && styles.selectedMissionContainer, // 已選任務樣式
+                    selectedMission?.id === mission.missionID && styles.selectedMissionContainer,
                   ]}
-                  onPress={() => handleMissionPress(mission)} // 選擇任務時的操作
-                  disabled={selectedMission !== null} // 已選擇的任務禁用按鈕
+                  onPress={() => handleMissionPress(mission)}
+                  disabled={selectedMission !== null}
                 >
                   <Text
                     style={[
                       styles.missionText,
-                      selectedMission?.id === mission.id && styles.selectedMissionText, // 已選任務的文字樣式
+                      selectedMission?.id === mission.missionID && styles.selectedMissionText,
                     ]}
                   >
                     {mission.content}
                   </Text>
                 </TouchableOpacity>
+            
+                <TouchableOpacity
+                  style={styles.comicButton}
+                  onPress={() => handleComicPress(mission.chatData)}>
+                  <Icon name="play-circle-outline" size={30} color="#000" />
+                </TouchableOpacity>
+              </View>
               ))
             ) : (
               // 沒有任務時顯示
@@ -260,6 +371,62 @@ const confirmMissionSelection = mission => {
           )}
         </View>
       )}
+
+      {/* Modal for Comic */}
+      {selectedComic && (
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={modalVisible}
+          onRequestClose={handleModalClose}>
+          <SafeAreaView style={styles.modalContainer}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleModalClose}>
+              <Icon name="close" size={30} color="#000" />
+            </TouchableOpacity>
+
+            <Text style={styles.comicTitle}> {selectedComic.title}</Text>
+
+            <FlatList
+              ref={flatListRef}
+              data={selectedComic.urlsByType.comic.map(c =>
+                c.url ? c.url : null,
+              )}
+              
+              renderItem={renderComicImage}
+              keyExtractor={(item, index) => index.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              getItemLayout={(data, index) => ({
+                length: 400, // 每個項目的固定寬度/高度
+                offset: 400 * index, // 根據索引計算每個項目的位置
+                index,
+              })}
+              onScroll={handleScroll}
+              onScrollToIndexFailed={info => {
+                // 這個函數可以處理滾動到不可見項目的失敗
+                const wait = new Promise(resolve => setTimeout(resolve, 500));
+                wait.then(() => {
+                  flatListRef.current?.scrollToIndex({
+                    index: info.index,
+                    animated: true,
+                  });
+                });
+              }}
+            />
+            
+            {/* 頁數指示器 */}
+            <Animated.View
+              style={[styles.pageIndicator, {opacity: pageIndicatorOpacity}]}>
+              <Text style={styles.pageIndicatorText}>
+                {currentPage}/{selectedComic.urlsByType.comic.length}
+              </Text>
+            </Animated.View>
+          </SafeAreaView>
+        </Modal>
+      )}
+
 
         {/* “完成了” 或 “還沒有”按鈕 */}
         {showCompletionButtons && (
@@ -305,12 +472,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: 'rgba(0, 0, 0, 0)',
   },
-  missionsContainer: {
+  missionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent:'center',
+    marginBottom: 10,
+    marginTop:10,
+  },
+  missionsContainer:{
     justifyContent: 'center',
     marginLeft: 45,
     marginRight: 45,
     marginBottom: 10,
     marginTop: 30,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 7,
+    zIndex: 1,
   },
   missionContainer: {
     backgroundColor: '#FCF7E8',
@@ -322,12 +502,35 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 2.5,
   },
+  selectedMissionContainer: {
+    backgroundColor: '#FCF7E8',
+    padding: 15,
+    borderRadius: 15,
+    marginVertical: 7,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.35,
+    shadowRadius: 2.5,
+
+  },
   missionText: {
     fontSize: 16,
-    color: '#000',
     textAlign: 'center',
     padding: 5,
     fontWeight: 'bold',
+    color: '#4C241D',
+  },
+  selectedMissionText: {
+    fontWeight: 'bold',
+  },
+  comicButton: {
+    marginLeft: 10,
+    padding: 5,
+    borderRadius: 5,
+  },
+  comicButtonText: {
+    fontSize: 18,
+    color: '#FFFFFF',
   },
   noMissionContainer: {
     justifyContent: 'center',
@@ -385,6 +588,149 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#EDEBDC',
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#EDEBDC',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 18,
+    color: '#80351E',
+  },
+  comicContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 400, // 固定寬度以保持位置一致
+    height: 'auto', // 固定高度
+    position: 'relative', // 使用相對位置確保內容不會相互重疊
+  },
+  captionWrapper: {
+    backgroundColor: '#EDEBDC',
+    borderRadius: 0,
+    width: '70%',
+    height: 'auto',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 8,
+    shadowColor: 'black',
+    shadowOffset: {width: 1, height: 2},
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    position: 'absolute', // 固定位置
+    bottom: 120, // 固定在容器的底部
+  },
+  captionText: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    fontSize: 16,
+    color: '#444',
+    flexWrap: 'wrap',
+  },
+  dialogueWrapper: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 10,
+    flexShrink: 1,
+    flexDirection: 'column',
+    shadowColor: '#000',
+    shadowOffset: {width: 2, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    zIndex: 20,
+    position: 'absolute',
+    top: 50,
+    overflow: 'visible',
+    width: '70%',
+  },
+
+  dialogueText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+    flexWrap: 'wrap',
+  },
+  dialogueTail: {
+    position: 'absolute',
+    bottom: -20,
+    left: 20,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 7,
+    borderRightWidth: 25,
+    borderTopWidth: 30,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: {width: 1, height: 9},
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  fullImage: {
+    width: 400, // 圖片填滿容器寬度
+    height: '70%', // 固定高度為容器的70%
+    position: 'absolute', // 固定圖片位置，防止圖片移動
+    top: 60, // 保證圖片在容器頂部開始
+    marginHorizontal: 0.5,
+    marginTop: 50,
+    marginBottom: -20,
+  },
+  loadingComicContainer: {
+    position: 'absolute', // 使用絕對定位覆蓋整個螢幕
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center', // 垂直居中
+    alignItems: 'center', // 水平居中
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', // 半透明黑色背景
+    zIndex: 10, // 保證載入層在畫面最上層
+  },
+  loadingComicText: {
+    color: 'white', // 深棕色文字
+    fontSize: 18, // 文字大小
+    marginTop: 10, // 與載入指示器的間距
+    textAlign: 'center',
+  },
+  stopAutoPlayButton: {
+    position: 'absolute',
+    bottom: 30, // 可以根據需要調整位置
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    zIndex: 10, // 保證頁數顯示在最上層
+  },
+  pageIndicator: {
+    position: 'absolute',
+    bottom: 20, // 可以根據需要調整位置
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    zIndex: 10, // 保證頁數顯示在最上層
+  },
+  pageIndicatorText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  comicTitle: {
+    fontSize: 24,
+    color: 'black',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    paddingBottom: -20,
   },
 });
 

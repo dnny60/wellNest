@@ -11,6 +11,7 @@ import QuestionnaireScreen from '../screens/QuestionnaireScreen';
 import QuestionnaireStack from './QuestionnaireStack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TherapyScreen from '../screens/TherapyScreen';
+import AppointmentsPage from '../screens/AppointmentScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -53,6 +54,15 @@ const AppStack = () => {
         options={{
           drawerIcon: ({color}) => (
             <Ionicons name="clipboard" size={22} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="政大預約"
+        component={AppointmentsPage}
+        options={{
+          drawerIcon: ({color}) => (
+            <Ionicons name="calendar" size={22} color={color} />
           ),
         }}
       />
