@@ -31,7 +31,7 @@ const TherapyScreen = ({ navigation }) => {
 
     const fetchClinics = () => {
       if (location) {
-        fetch('http://172.20.10.3:8080/location', {
+        fetch('http://140.119.202.10:8080/location', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

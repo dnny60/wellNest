@@ -15,6 +15,13 @@ const ResultScreen = ({route, navigation}) => {
     });
   };
 
+  const handleTherapyPress = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: '診所'}],
+    });
+  };
+
   const getResultInterpretation = () => {
     const suicidalThoughtsScore =
       answers[questions.findIndex(q => q.questionText.includes('自殺的想法'))];
@@ -57,9 +64,15 @@ const ResultScreen = ({route, navigation}) => {
             {interpretation}
           </View>
         </ScrollView>
-        <TouchableOpacity style={styles.button} onPress={handleHomePress}>
-          <Text style={styles.buttonText}>返回主頁</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonwrapper}>
+          <TouchableOpacity style={styles.button} onPress={handleHomePress}>
+            <Text style={styles.buttonText}>返回主頁</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleTherapyPress}>
+            <Text style={styles.buttonText}>前往診所資訊</Text>
+          </TouchableOpacity>
+        </View>
+        
       </View>
     </SafeAreaView>
   );
@@ -130,20 +143,28 @@ const styles = StyleSheet.create({
   },
   button: {
     height: 48,
-    width: 143,
+    width: 125,
     backgroundColor: '#87988C',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
+    marginHorizontal:15,
     borderRadius: 10,
     marginTop: 16,
     justifyContent: 'center',
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     textAlign: 'center',
   },
+  buttonwrapper:{
+    flexDirection:'row',
+    justifyContent:'space-between',
+    marginHorizontal:15,
+    alignItems: 'center', 
+
+  }
 });
 
 export default ResultScreen;

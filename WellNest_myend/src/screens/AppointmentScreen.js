@@ -9,7 +9,7 @@ const AppointmentsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const API_URL = 'http://172.20.10.3:8080';
+  const API_URL = 'http://140.119.202.10:8080';
   // Fetch appointment data from /appointment API
   const fetchAppointments = async () => {
     try {

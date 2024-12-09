@@ -12,11 +12,13 @@ import {
   Alert,
   ActivityIndicator,
   Animated,
+  Switch,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Sound from 'react-native-sound';
 import Icon from 'react-native-vector-icons/Ionicons';
 import TopBar from '../components/TopBar';
+// import Switch from 'react-native-switchbutton';
 
 const ComicScreen = ({navigation, route}) => {
   const [comics, setComics] = useState(Array(10).fill(null));
@@ -31,18 +33,27 @@ const ComicScreen = ({navigation, route}) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true); // 當前是否處於自動播放模式
-  const [isReplayMode, setIsReplayMode] = useState(false); // 是否顯示重新播放按鈕
   const [isManualMode, setIsManualMode] = useState(false); // 是否處於手動模式
   const [isPlaying, setIsPlaying] = useState(false);
   const autoPlayIntervalRef = useRef(null); // 保存自動播放定時器
   const isAutoPlayingRef = useRef(isAutoPlaying);
   const currentSoundRef = useRef(null);
-  const [isGenerating, setIsGenerating] = useState(false); 
+  const [isGenerating, setIsGenerating] = useState(false);
   const pageIndicatorOpacity = useRef(new Animated.Value(1)).current;
+  const [newComics, setNewComics] = useState([]); // 存储正在生成的漫画
+  const [isShared, setIsShared] = useState(false);
   const BGM_URL =
     'https://wellnestbucket.s3.ap-southeast-2.amazonaws.com/cozy_bgm.mp3';
 
-  const API_URL = 'http://172.20.10.3:8080';
+  const API_URL = 'http://140.119.202.10:8080';
+
+  const [isFetching, setIsFetching] = useState(false);
+
+  useEffect(() => {
+    if (!isFetching && !isGenerating) {
+      fetchComicCollection();
+    }
+  }, []);
 
   useEffect(() => {
     const fadeOutTimeout = setTimeout(fadeOutPageIndicator, 10000);
@@ -65,27 +76,65 @@ const ComicScreen = ({navigation, route}) => {
     }).start();
   };
 
+  // 自動播放狀態的管理
   useEffect(() => {
-    isAutoPlayingRef.current = isAutoPlaying;
-  }, [isAutoPlaying]);
-
-  const stopOrResumeAutoPlay = () => {
-    if (isManualMode) {
-      // 切換到自動播放模式
-      setIsAutoPlaying(true);
-      setIsManualMode(false);
-      setIsReplayMode(false);
-      startAutoPlay(); // 啟動自動播放
-    } else {
-      // 切換到手動模式並停止自動播放
-      clearInterval(autoPlayIntervalRef.current);
-      setIsAutoPlaying(false);
-      setIsManualMode(true); // 切換為手動模式
-      stopAndReleaseSound(currentSoundRef.current); // 停止當前播放的音檔
-      if (isAutoPlaying) {
-        stopAutoPlay(); // 當在自動播放模式下檢測到滑動時，自動切換到手動模式
-      }
+    if (modalVisible && selectedComic && isAutoPlaying) {
+      playBackgroundMusic();
+      playAudioForPage(currentPage - 1);
     }
+  }, [modalVisible, selectedComic, isAutoPlaying]);
+
+  // 背景音樂播放
+  const playBackgroundMusic = () => {
+    if (bgmSound) return; // 防止重複播放
+    const bgm = playSound(BGM_URL, () => {
+      bgm.release();
+      setBgmSound(null);
+    });
+    setBgmSound(bgm);
+  };
+
+  const toggleShareStatus = async () => {
+    if (!selectedComic || !selectedComic.chatId) {
+      Alert.alert('Error', 'No comic selected or chatId is missing.');
+      return;
+    }
+  
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      if (!userToken) {
+        throw new Error('User is not authenticated');
+      }
+  
+      // 發送請求，body 僅包含整數
+      const response = await fetch(`${API_URL}/comic/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // 確保使用 JSON 格式
+          Authorization: `Bearer ${userToken}`, // 添加 Token 驗證
+        },
+        body: selectedComic.chatId.toString(), // 傳遞純整數作為字串
+      });
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage || 'Failed to toggle share status.');
+      }
+  
+      Alert.alert('Success', 'Comic share status updated successfully!');
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to toggle share status.');
+      console.error('Error toggling share status:', error);
+    }
+  };
+
+  const stopAutoPlay = () => {
+    if (currentSoundRef.current) {
+      currentSoundRef.current.stop(() => currentSoundRef.current.release());
+      currentSoundRef.current = null;
+    }
+    setIsAutoPlaying(false); // 更新状态
+    clearInterval(autoPlayIntervalRef.current); // 清除定时器
   };
 
   useEffect(() => {
@@ -104,14 +153,13 @@ const ComicScreen = ({navigation, route}) => {
 
   // Fetch comics collection on screen load
   const fetchComicCollection = async () => {
+    if (isFetching) return; // 防止多次請求
+    setIsFetching(true);
+    setLoading(true);
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (!userToken) {
         throw new Error('User is not authenticated');
-      }
-      setLoading(true);
-      if(isGenerating){
-        setComics([...comics, null]);
       }
   
       const response = await fetch(`${API_URL}/comic/collection`, {
@@ -121,31 +169,21 @@ const ComicScreen = ({navigation, route}) => {
           'Content-Type': 'application/json',
         },
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to fetch comic collection');
       }
-
+  
       const data = await response.json();
-      console.log('API Response:', data); // 確認 API 回傳的資料
-
-      if (data.length === 0) {
-        console.log('No comics found in the collection.');
-      }
-
       setComics(data); // 更新漫畫集合
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching comic collection:', error);
       setError(error.message); // 在頁面上顯示錯誤
     } finally {
       setLoading(false);
-      setIsGenerating(false);
+      setIsFetching(false); // 確保重置 isFetching
     }
   };
-
-  useEffect(() => {
-    fetchComicCollection(); // 加載漫畫集合
-  }, []);
 
   const handleScroll = event => {
     const contentOffsetX = event.nativeEvent.contentOffset.x; // 當前滾動的 X 偏移量
@@ -158,6 +196,12 @@ const ComicScreen = ({navigation, route}) => {
     setSelectedComic(comic);
 
     console.log('Selected Comic:', comic);
+
+    // 确保选中漫画包含 chatId
+    if (!comic.chatId) {
+      console.error('Comic chatId is missing.');
+      return;
+    }
 
     // Extract comic URLs and captions
     const comicUrls =
@@ -196,7 +240,6 @@ const ComicScreen = ({navigation, route}) => {
   };
 
   const renderComicImage = ({item, index}) => {
-    
     const caption =
       selectedComic?.urlsByType?.comic?.[index]?.caption
         ?.replace(/[\[\]]/g, '')
@@ -208,6 +251,9 @@ const ComicScreen = ({navigation, route}) => {
       ? selectedComic.dialogue
           .find(d => parseInt(d.page, 10) === index + 1)
           ?.content.replace(/\\n/g, '')
+          .replace(/[\[\]]/g, '')
+          .replace(/uv_break/g, '') // 跳過 uv_break
+          .trim() // 移除前後多餘空格
       : '';
 
     return (
@@ -236,22 +282,23 @@ const ComicScreen = ({navigation, route}) => {
   };
 
   const playSound = (url, onEnd) => {
-    if (isPlaying) return; // 如果正在播放，則不重複播放
-
-    console.log(`Loading sound: ${url}`);
-    const sound = new Sound(url, null, error => {
+    if (currentSoundRef.current) {
+      currentSoundRef.current.stop(() => currentSoundRef.current.release());
+      currentSoundRef.current = null;
+    }
+  
+    const sound = new Sound(url, null, (error) => {
       if (error) {
-        Alert.alert('Error', 'Failed to load the sound');
+        console.error('Failed to load sound', error);
         return;
       }
-      console.log(`Playing sound: ${url}`);
-      setIsPlaying(true); // 標記為正在播放
       sound.play(() => {
-        setIsPlaying(false); // 播放完成後重置標記
         sound.release();
         if (onEnd) onEnd();
       });
     });
+  
+    currentSoundRef.current = sound;
     return sound;
   };
 
@@ -264,15 +311,19 @@ const ComicScreen = ({navigation, route}) => {
       return;
     }
 
-    // 如果在自動播放中，先停止自動播放模式
+    // 自動播放時停止播放並切換到手動模式
     if (isAutoPlaying) {
       stopAutoPlay();
     }
 
     // 檢查 currentSoundRef 是否有定義再停止和釋放
-    if (currentSoundRef.current) {
-      currentSoundRef.current.stop(() => currentSoundRef.current.release());
-      currentSoundRef.current = null;
+    if (currentSoundRef.current && typeof currentSoundRef.current.stop === 'function') {
+      currentSoundRef.current.stop(() => {
+        if (typeof currentSoundRef.current.release === 'function') {
+          currentSoundRef.current.release();
+        }
+        currentSoundRef.current = null; // 確保清空當前音檔
+      });
     }
 
     // 安全地停止並釋放所有音頻，確保音頻實例存在
@@ -294,103 +345,186 @@ const ComicScreen = ({navigation, route}) => {
   const handleMomentumScrollEnd = event => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const pageIndex = Math.floor(contentOffsetX / 400); // 計算當前頁數
-    setCurrentPage(pageIndex + 1); // 更新頁碼（index + 1）
-
-    if (!isAutoPlaying) {
-      // 只有在手動模式下播放音檔
-      playAudioForPage(pageIndex);
-    }
+    setCurrentPage(pageIndex + 1); // 更新頁碼
   };
 
+  // 自動播放邏輯
   const playAudioForPage = pageIndex => {
     if (!selectedComic || !selectedComic.urlsByType.voice) return;
-    // 篩選出該頁面的音頻列表
+
+    // stopAndReleaseSound(currentSoundRef.current); // 確保之前的音效停止
+
     const pageAudioUrls = selectedComic.urlsByType.voice.filter(url => {
-      const pageMatch = url.match(/(n|d)_(\d+)_/); // 匹配 n_x_ 或 d_x_ 的格式
+      const pageMatch = url.match(/(n|d)_(\d+)_/);
       return pageMatch && parseInt(pageMatch[2], 10) === pageIndex + 1;
     });
 
     let audioIndex = 0;
 
-    const playNextAudioForPage = () => {
+    const playNextAudio = () => {
       if (audioIndex >= pageAudioUrls.length) {
-        // 自動跳轉到下一頁，並播放下一頁的音頻
-        const nextPageIndex = pageIndex + 1;
-        if (nextPageIndex < selectedComic.urlsByType.comic.length) {
-          flatListRef.current.scrollToIndex({ index: nextPageIndex, animated: true });
-          setCurrentPage(nextPageIndex + 1);
-          playAudioForPage(nextPageIndex); // 播放下一頁
-        } else {
-          // 結束自動播放，顯示重新播放選項
-          setIsAutoPlaying(false);
-          setIsReplayMode(true);
-          stopAndReleaseSound(bgmSound);
+        if (pageIndex+1 >= selectedComic.urlsByType.comic.length) {
+          // 最後一頁結束
+          Alert.alert('提示', '漫畫已結束');
+          setIsAutoPlaying(false); // 切換到手動模式
+          stopAndReleaseSound(bgmSound); // 停止背景音樂
+          return;
+        
         }
-        return;
+        // 自動切換到下一頁
+        flatListRef.current?.scrollToIndex({
+          index: pageIndex + 1,
+          animated: true,
+        });
+        setCurrentPage(pageIndex + 2);
+        playAudioForPage(pageIndex + 1);
+      } else {
+        const sound = playSound(pageAudioUrls[audioIndex], () => {
+          audioIndex += 1;
+          playNextAudio();
+        });
+        currentSoundRef.current = sound;
       }
-
-
-      // 播放當前音頻
-      const sound = playSound(pageAudioUrls[audioIndex], () => {
-        audioIndex += 1;
-        playNextAudioForPage(); // 播放下一個音頻
-      });
-
-      // 更新 currentSoundRef 以避免重複播放
-      currentSoundRef.current = sound;
     };
 
-    playNextAudioForPage(); // 開始播放第一個音頻
+    playNextAudio();
   };
 
-  useEffect(() => {
-    if (modalVisible && selectedComic) {
-      const bgm = playSound(BGM_URL);
-      setBgmSound(bgm);
 
-      if (isAutoPlaying) {
-        playAudioForPage(0); // 啟動自動播放從第0頁開始
-      }
+  // 停止所有音效
+  const stopAndReleaseSound = (sound) => {
+    if (sound && typeof sound.stop === 'function' && typeof sound.release === 'function') {
+      sound.stop(() => sound.release());
     }
-  }, [modalVisible, selectedComic, isAutoPlaying]);
+  };
 
-  const startAutoPlay = () => {
-    // 初始化播放狀態
-    setIsAutoPlaying(true); // 啟動自動播放模式
-    setIsReplayMode(false); // 確保按鈕狀態正確
-    setCurrentPage(1); // 從第1頁開始
-    flatListRef.current.scrollToIndex({ index: 0, animated: true }); // 滾動到第一頁
-  
-    // 清空並重新設置音頻播放隊列
-    setAudioQueue([]);
+  const stopAllAudio = () => {
     if (currentSoundRef.current) {
       currentSoundRef.current.stop(() => currentSoundRef.current.release());
       currentSoundRef.current = null;
     }
-  
-    // 開始從第一頁播放音頻
-    playAudioForPage(0);
   };
 
-  const handleModalClose = () => {
-    stopAndReleaseSound(bgmSound);
-    setBgmSound(null);
+  // 自動播放啟動
+  const startAutoPlay = () => {
+    stopAllAudio(); // 停止並釋放現有音效
+    setIsAutoPlaying(true);
+    setIsManualMode(false);
+    playAudioForPage(currentPage - 1); // 從當前頁開始播放
+  };
 
-    audioQueue.forEach(sound => {
-      sound.stop(() => sound.release());
+  // 切換到手動模式
+  const togglePlaybackMode = () => {
+    if (isAutoPlaying) {
+      // 切換到手動模式
+      setIsAutoPlaying(false); // 關閉自動播放
+      setIsManualMode(true); // 啟用手動模式
+      releaseAllResources();
+    } 
+    else {
+      // 切換回自動播放
+      if (currentPage === selectedComic.urlsByType.comic.length) {
+        // 最後一頁時詢問是否重播
+        Alert.alert('重播', '是否要從第一頁重新播放？', [
+          { text: '離開', onPress: () => handleModalClose() },
+          {
+            text: '是',
+            onPress: () => {
+              setCurrentPage(1);
+              flatListRef.current?.scrollToIndex({ index: 0, animated: true });
+              setIsAutoPlaying(true); // 更新 Switch 狀態
+              startAutoPlay();
+            },
+          },
+        ]);
+      } else {
+        setIsAutoPlaying(true);
+        startAutoPlay();
+      }
+    }
+  };
+
+  // 手動模式音頻播放
+  const playCurrentPageAudio = () => {
+    if (!selectedComic || !selectedComic.urlsByType.voice) return;
+
+    const pageAudioUrls = selectedComic.urlsByType.voice.filter(url => {
+      const pageMatch = url.match(/(n|d)_(\d+)_/);
+      return pageMatch && parseInt(pageMatch[2], 10) === currentPage;
     });
 
-    setAudioQueue([]); // 清空队列
-    setModalVisible(false);
-    setCurrentAudioIndex(0);
+    if (pageAudioUrls.length > 0) {
+      playSound(pageAudioUrls[0]);
+    }
   };
 
-  const stopAndReleaseSound = sound => {
-    if (sound) {
-      sound.stop(() => {
-        sound.release();
-      });
+  const renderPageIndicator = () => (
+    <Animated.View
+      style={[styles.pageIndicator, {opacity: pageIndicatorOpacity}]}>
+      <Text style={styles.pageIndicatorText}>
+        {currentPage}/{selectedComic.urlsByType.comic.length}
+      </Text>
+      {isManualMode && (
+        <Button title="播放音頻" onPress={playCurrentPageAudio} />
+      )}
+    </Animated.View>
+  );
+
+  const releaseAllResources = () => {
+    try {
+      // 停止並釋放背景音樂
+      if (bgmSound && typeof bgmSound.stop === 'function') {
+        bgmSound.stop(() => {
+          if (typeof bgmSound.release === 'function') {
+            bgmSound.release();
+          }
+          setBgmSound(null); // 確保清空背景音效
+        });
+      }
+  
+      // 停止並釋放當前音檔
+      if (currentSoundRef.current && typeof currentSoundRef.current.stop === 'function') {
+        currentSoundRef.current.stop(() => {
+          if (typeof currentSoundRef.current.release === 'function') {
+            currentSoundRef.current.release();
+          }
+          currentSoundRef.current = null; // 確保清空當前音檔
+        });
+      }
+  
+      // 快速釋放音檔隊列
+      if (audioQueue.length > 0) {
+        audioQueue.forEach((sound) => {
+          if (sound && typeof sound.stop === 'function') {
+            sound.stop(() => {
+              if (typeof sound.release === 'function') {
+                sound.release();
+              }
+            });
+          }
+        });
+        setAudioQueue([]); // 清空音檔隊列
+      }
+    } catch (error) {
+      console.error('Error releasing audio resources:', error);
     }
+  };
+
+  const handleModalClose = async () => {
+    // 釋放所有資源
+    releaseAllResources();
+    setAudioQueue([]); // 清空音效隊列
+    setModalVisible(false);
+    setIsAutoPlaying(false); // 停止自動播放
+  
+    // 確保重新加載漫畫集合
+  try {
+    await fetchComicCollection();
+  } catch (error) {
+    console.error('Failed to fetch comic collection:', error);
+  } finally {
+    setIsFetching(false); // 確保重置 isFetching
+  }
   };
 
   const formatDate = dateString => {
@@ -439,12 +573,11 @@ const ComicScreen = ({navigation, route}) => {
   };
 
   useEffect(() => {
-    if (route.params?.autoFetch) {
-      fetchComic();
-      setIsGenerating(true);
-      setComics([...comics, null]);
+    if (route.params?.autoFetch && !isGenerating) {
+      fetchComicCollection();
+      setIsGenerating(true); // 防止重複觸發
     }
-  }, [route.params]);
+  }, [route.params, isGenerating]);
 
   //漫畫生成
   const fetchComic = async () => {
@@ -458,7 +591,7 @@ const ComicScreen = ({navigation, route}) => {
       }
 
       setLoading(true);
-    
+
       // Make the API request to fetch the comic
       const response = await fetch(`${API_URL}/comic`, {
         method: 'GET',
@@ -477,7 +610,11 @@ const ComicScreen = ({navigation, route}) => {
       // Parse the response
       const data = await response.json();
 
+      // 更新主 FlatList 的漫画集合
       await fetchComicCollection();
+
+      // 将新漫画从 `newComics` 中移除
+      setNewComics(prev => prev.filter(comic => !comic.generating));
     } catch (error) {
       // Handle errors
       setError(error.message);
@@ -489,16 +626,38 @@ const ComicScreen = ({navigation, route}) => {
     }
   };
 
+  const renderNewComic = ({item}) => {
+    if (item.generating) {
+      return (
+        <View style={styles.coverContainer}>
+          <ActivityIndicator size="large" color="#80351E" />
+          <Text style={styles.loadingText}>新漫畫生成中...</Text>
+        </View>
+      );
+    }
 
+    return null; // 如果不是生成状态则不渲染
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.titleWrapper}>
         <Text style={styles.title}>心情日記</Text>
       </View>
-    
+
+      {/* FlatList 用于显示正在生成的漫画 */}
+      {newComics.length > 0 && (
+        <FlatList
+          data={newComics}
+          renderItem={renderNewComic}
+          keyExtractor={item => item.id.toString()}
+          numColumns={2}
+          contentContainerStyle={styles.grid}
+        />
+      )}
+
       <FlatList
-        data={comics} 
+        data={comics}
         renderItem={renderComicCover}
         keyExtractor={(item, index) => index.toString()}
         numColumns={2}
@@ -529,7 +688,6 @@ const ComicScreen = ({navigation, route}) => {
               data={selectedComic.urlsByType.comic.map(c =>
                 c.url ? c.url : null,
               )}
-              
               renderItem={renderComicImage}
               keyExtractor={(item, index) => index.toString()}
               horizontal
@@ -553,17 +711,32 @@ const ComicScreen = ({navigation, route}) => {
                 });
               }}
             />
-            <TouchableOpacity
-              style={styles.stopAutoPlayButton}
-              onPress={isReplayMode ? startAutoPlay : stopOrResumeAutoPlay}>
-              <Text style={styles.stopAutoPlayText}>
-                {isManualMode
-                  ? '自動播放'
-                  : isReplayMode
-                  ? '重新播放'
-                  : '停止自動播放'}
+            <View style={styles.switchContainer}>
+              <Text style={styles.label}>
+                {isAutoPlaying ? '自動播放' : '手動模式'}
               </Text>
-            </TouchableOpacity>
+              <Switch
+                value={isAutoPlaying}
+                onValueChange={togglePlaybackMode}
+                trackColor={{ false: '#FFCDD2', true: '#A5D6A7' }} // 关闭和打开的背景颜色
+                thumbColor={isAutoPlaying ? '#4CAF50' : '#EDEBDC'} // 圆形按钮的颜色
+              />
+            </View>
+
+            {/* 分享開關 */}
+            {selectedComic && (
+              <View style={styles.sbContainer}>
+                <Text style={styles.label}>
+                  {isShared ? '分享中' : '未分享'}
+                </Text>
+                <Switch
+                  value={isShared} // 绑定分享状态
+                  onValueChange={toggleShareStatus} // 状态改变时触发
+                  trackColor={{ false: '#FFCDD2', true: '#A5D6A7' }} // 关闭和打开的背景颜色
+                  thumbColor={isShared ? '#4CAF50' : '#EDEBDC'} // 圆形按钮的颜色
+                />
+              </View>
+            )}
 
             {/* 頁數指示器 */}
             <Animated.View
@@ -615,19 +788,34 @@ const styles = StyleSheet.create({
     // backgroundColor:'#E3B7AA',
     height: '200%',
   },
-  coverContainer: {
-    margin: 10,
-    marginTop: 30,
-    paddingTop: 20,
-    width: 150,
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    //backgroundColor:'#ECDDC2',
-    backgroundColor: 'white',
+  sbContainer: {
+    position: 'absolute',
+    bottom: 35,
+    right: 20,
+    width: 80,
+    height: 'auto',
+
     borderRadius: 10,
-    borderWidth: 0.1,
-    shadowColor: 'black',
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: {width: 2, height: 4},
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    color: 'black',
+  },
+  switchContainer: {
+    position: 'absolute',
+    bottom: 35,
+    left: 20,
+    width: 100,
+    height: 'auto',
+    alignSelf: 'center',
+    padding: 10,
+    shadowColor: '#000',
     shadowOffset: {width: 2, height: 4},
     shadowOpacity: 0.4,
     shadowRadius: 5,
@@ -786,6 +974,28 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
+    textAlign: 'center',
+  },
+  coverContainer: {
+    margin: 10,
+    marginTop: 30,
+    paddingTop: 20,
+    width: 150,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    borderWidth: 0.1,
+    shadowColor: 'black',
+    shadowOffset: {width: 2, height: 4},
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#80351E',
     textAlign: 'center',
   },
 });

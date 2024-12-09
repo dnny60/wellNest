@@ -86,7 +86,7 @@ const EditProfile = ({navigation}) => {
     // 将数据发送到后端保存
     try {
       const response = await axios.post(
-        'http://172.20.10.3:8080/users/edit',
+        'http://140.119.202.10:8080/users/edit',
         {
           name: name,
           email: email,

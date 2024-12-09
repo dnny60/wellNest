@@ -68,7 +68,7 @@ const HomeScreen = ({navigation, route}) => {
 
       initializeChat();
 
-      if (route.params?.generateComic) {
+      if (route.params?.source === '任務' && route.params?.generateComic) {
         setMessages(prevMessages => [
           ...prevMessages,
           {sender: 'ai', text: '快跟我分享！讓我來為你紀錄吧'},
@@ -125,7 +125,7 @@ const HomeScreen = ({navigation, route}) => {
 
   const createChat = async token => {
     try {
-      const response = await fetch('http://172.20.10.3:8080/chat/create', {
+      const response = await fetch('http://140.119.202.10:8080/chat/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ const HomeScreen = ({navigation, route}) => {
 
       const sound = new Sound(nextAudioPath, '', error => {
         if (error) {
-          console.error('加載音頻文件失敗:', error);
+          // console.error('加載音頻文件失敗:', error);
           setIsPlaying(false);
           setAudioQueue(queue => queue.slice(1));
           return;
@@ -178,7 +178,7 @@ const HomeScreen = ({navigation, route}) => {
     ]);
     setInputMessage('');
 
-    const url = `http://172.20.10.3:8080/chat/message?user=${userId}&prompt=${encodeURIComponent(
+    const url = `http://140.119.202.10:8080/chat/message?user=${userId}&prompt=${encodeURIComponent(
       inputMessage,
     )}`;
     let eventSource = new EventSource(url);
@@ -247,7 +247,7 @@ const HomeScreen = ({navigation, route}) => {
 
   const storeMessage = async message => {
     try {
-      const response = await fetch('http://172.20.10.3:8080/message/create', {
+      const response = await fetch('http://140.119.202.10:8080/message/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -271,7 +271,7 @@ const HomeScreen = ({navigation, route}) => {
 
   const finishChat = async () => {
     try {
-      const response = await fetch('http://172.20.10.3:8080/chat/finish', {
+      const response = await fetch('http://140.119.202.10:8080/chat/finish', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -406,7 +406,7 @@ const HomeScreen = ({navigation, route}) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.nomodalButton}
-                onPress={() => setModalVisible(true)}>
+                onPress={() => setModalVisible(false)}>
                 <Text style={styles.nomodalButtonText}>下次再來</Text>
               </TouchableOpacity>
             </View>

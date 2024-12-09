@@ -21,7 +21,7 @@ import {AuthContext} from '../components/AuthContext';
 import ChatbotScene from '../scenes/chatbotScene';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const API_URL = 'http://172.20.10.3:8080'; // Update this to your actual backend URL
+const API_URL = 'http://140.119.202.10:8080'; // Update this to your actual backend URL
 
 const MissionsScreen = ({navigation, route}) => {
   const [missions, setMissions] = useState([]);
@@ -151,10 +151,6 @@ const MissionsScreen = ({navigation, route}) => {
     setSelectedComic(chatData);
     setModalVisible(true);
   };
-
-
-  const filteredMission = missions.find((mission) => mission.chatData.chatId === 48); // 替换为测试用 chatId
-
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -383,7 +379,7 @@ const confirmMissionSelection = mission => {
             <TouchableOpacity
               style={styles.closeButton}
               onPress={handleModalClose}>
-              <Icon name="close" size={30} color="#000" />
+              <Icon name="close" size={40} color="#000" />
             </TouchableOpacity>
 
             <Text style={styles.comicTitle}> {selectedComic.title}</Text>
@@ -445,13 +441,19 @@ const confirmMissionSelection = mission => {
         )}
       </ScrollView>
       {/* Chat messages */}
-      {chatMessages.map((msg, index) => (
-          <View
-            key={index}
-            style={msg.sender === 'user' ? styles.userMessage : styles.aiMessage}>
-            <Text>{msg.text}</Text>
-          </View>
-        ))}
+      {showCompletionButtons && (
+        <ScrollView style={styles.chatWrapper}>
+        {chatMessages.map((msg, index) => (
+            <View
+              key={index}
+              style={msg.sender === 'user' ? styles.userMessage : styles.aiMessage}>
+              <Text>{msg.text}</Text>
+            </View>
+          ))}
+
+      </ScrollView>
+      ) }
+      
 
       <View style={styles.sceneContainer}>
         <ChatbotScene />
@@ -488,8 +490,8 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 40,
-    right: 7,
+    top: 50,
+    right: 15,
     zIndex: 1,
   },
   missionContainer: {
@@ -552,8 +554,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   chatContainer: {
-    flex: 1,
+    flex:1,
     paddingHorizontal: 10,
+  },
+  chatWrapper:{
+    flex:1,
+    marginHorizontal:-10
   },
   userMessage: {
     alignSelf: 'flex-end',
@@ -730,7 +736,8 @@ const styles = StyleSheet.create({
     color: 'black',
     textAlign: 'center',
     fontWeight: 'bold',
-    paddingBottom: -20,
+    paddingBottom: -30,
+    marginTop:20,
   },
 });
 
