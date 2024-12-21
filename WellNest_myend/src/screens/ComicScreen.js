@@ -723,7 +723,7 @@ const ComicScreen = ({navigation, route}) => {
               />
             </View>
 
-            {/* 分享開關 */}
+            {/* 分享開關
             {selectedComic && (
               <View style={styles.sbContainer}>
                 <Text style={styles.label}>
@@ -736,7 +736,7 @@ const ComicScreen = ({navigation, route}) => {
                   thumbColor={isShared ? '#4CAF50' : '#EDEBDC'} // 圆形按钮的颜色
                 />
               </View>
-            )}
+            )} */}
 
             {/* 頁數指示器 */}
             <Animated.View
