@@ -21,7 +21,7 @@
 
 ## 🛠 技術堆疊
 
-- **前端**：React Native、React.js、TypeScript、Tailwind CSS（可選）
+- **前端**：React Native、React.js、TypeScript
 - **AI 與自然語言處理**：OpenAI API、TensorFlow.js
 - **3D 渲染**：React Three Fiber（`@react-three/drei/native`）、Three.js、glTF
 - **其他**：Expo、WebSocket、Custom Hook、Context API、Figma
@@ -123,7 +123,7 @@ This app provides emotional support through an AI-powered chatbot, real-time moo
 
 ## 🛠 Tech Stack
 
-- **Frontend:** React Native, React.js, TypeScript, Tailwind CSS (optional)
+- **Frontend:** React Native, React.js, TypeScript
 - **AI & NLP:** OpenAI API, TensorFlow.js
 - **3D Rendering:** React Three Fiber (`@react-three/drei/native`), Three.js, glTF
 - **Others:** Expo, WebSocket, Custom Hook, Context API, Figma
