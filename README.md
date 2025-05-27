@@ -127,16 +127,6 @@ This app provides emotional support through an AI-powered chatbot, real-time moo
 - **AI & NLP:** OpenAI API, TensorFlow.js
 - **3D Rendering:** React Three Fiber (`@react-three/drei/native`), Three.js, glTF
 - **Others:** Expo, WebSocket, Custom Hook, Context API, Figma
-
----
-
-## 📁 Folder Structure
-
-src/ ├── assets/ # Static assets (images, models, etc.) ├── components/
-│ ├── Chick.tsx # 3D chick model with animation using R3F + TS │ ├── CustomButton.js # Reusable button component │ ├── Loader.tsx # Loading animation screen │ ├── Trigger.tsx # Event-based animation trigger │ ├── WebSocket.js # Real-time message sync (chatroom or event) │ └── UseAudioManager.js # Custom hook for audio playback ├── constants/ # Color palette, font sizes, spacing values ├── content/ # Static text or emotion-related task data ├── navigation/ # React Navigation stack logic ├── scenes/ # 3D visualization scenes (if separated) ├── screens/
-│ ├── ChatbotScreen.js # AI chatbot interface │ ├── ComicScreen.js # Emotion-based comic presentation │ ├── MissionsScreen.js # Mood-based tasks and rewards │ ├── QuestionnaireScreen.js # Self-assessment flow │ ├── AppointmentScreen.js # Booking for mental health counseling │ └── HomeScreen.js # Main dashboard
-
-
 ---
 
 ## 📽 Demo Video
